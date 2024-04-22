@@ -1,0 +1,715 @@
+{
+  "id": "1fd0a451-58ad-4c4b-bec9-7605156fce0b",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "Channel": {
+      "name": "Channel",
+      "schema": "",
+      "columns": {
+        "channel_id": {
+          "name": "channel_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "channel_name": {
+          "name": "channel_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "server_id": {
+          "name": "server_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creator_id": {
+          "name": "creator_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "channel_server_id_index": {
+          "name": "channel_server_id_index",
+          "columns": [
+            "server_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "Channel_server_id_Server_server_id_fk": {
+          "name": "Channel_server_id_Server_server_id_fk",
+          "tableFrom": "Channel",
+          "tableTo": "Server",
+          "columnsFrom": [
+            "server_id"
+          ],
+          "columnsTo": [
+            "server_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Channel_creator_id_User_user_id_fk": {
+          "name": "Channel_creator_id_User_user_id_fk",
+          "tableFrom": "Channel",
+          "tableTo": "User",
+          "columnsFrom": [
+            "creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "Event": {
+      "name": "Event",
+      "schema": "",
+      "columns": {
+        "event_id": {
+          "name": "event_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "event_title": {
+          "name": "event_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_description": {
+          "name": "event_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creator_id": {
+          "name": "creator_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channel_id": {
+          "name": "channel_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_start_date": {
+          "name": "event_start_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_finish_date": {
+          "name": "event_finish_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "event_channel_id_index": {
+          "name": "event_channel_id_index",
+          "columns": [
+            "channel_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "Event_creator_id_User_user_id_fk": {
+          "name": "Event_creator_id_User_user_id_fk",
+          "tableFrom": "Event",
+          "tableTo": "User",
+          "columnsFrom": [
+            "creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Event_channel_id_Channel_channel_id_fk": {
+          "name": "Event_channel_id_Channel_channel_id_fk",
+          "tableFrom": "Event",
+          "tableTo": "Channel",
+          "columnsFrom": [
+            "channel_id"
+          ],
+          "columnsTo": [
+            "channel_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "Message": {
+      "name": "Message",
+      "schema": "",
+      "columns": {
+        "message_id": {
+          "name": "message_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "message_content": {
+          "name": "message_content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_file": {
+          "name": "message_file",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sender_id": {
+          "name": "sender_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "receiver_type": {
+          "name": "receiver_type",
+          "type": "receiver_type",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "receiver_id": {
+          "name": "receiver_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "replied_message_id": {
+          "name": "replied_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "message_receiver_id_index": {
+          "name": "message_receiver_id_index",
+          "columns": [
+            "receiver_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "Message_sender_id_User_user_id_fk": {
+          "name": "Message_sender_id_User_user_id_fk",
+          "tableFrom": "Message",
+          "tableTo": "User",
+          "columnsFrom": [
+            "sender_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "ServerInviteCode": {
+      "name": "ServerInviteCode",
+      "schema": "",
+      "columns": {
+        "server_invite_code_id": {
+          "name": "server_invite_code_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "server_id": {
+          "name": "server_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creator_id": {
+          "name": "creator_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "server_invite_code": {
+          "name": "server_invite_code",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "max_use_count": {
+          "name": "max_use_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 100
+        },
+        "due_date": {
+          "name": "due_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now() + interval '1 month'"
+        },
+        "total_use_count": {
+          "name": "total_use_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "is_in_use": {
+          "name": "is_in_use",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "invite_code_server_invite_code_index": {
+          "name": "invite_code_server_invite_code_index",
+          "columns": [
+            "server_invite_code"
+          ],
+          "isUnique": true
+        },
+        "invite_code_server_id_index": {
+          "name": "invite_code_server_id_index",
+          "columns": [
+            "server_id"
+          ],
+          "isUnique": false
+        },
+        "invite_code_user_id_index": {
+          "name": "invite_code_user_id_index",
+          "columns": [
+            "creator_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ServerInviteCode_server_id_Server_server_id_fk": {
+          "name": "ServerInviteCode_server_id_Server_server_id_fk",
+          "tableFrom": "ServerInviteCode",
+          "tableTo": "Server",
+          "columnsFrom": [
+            "server_id"
+          ],
+          "columnsTo": [
+            "server_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ServerInviteCode_creator_id_User_user_id_fk": {
+          "name": "ServerInviteCode_creator_id_User_user_id_fk",
+          "tableFrom": "ServerInviteCode",
+          "tableTo": "User",
+          "columnsFrom": [
+            "creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "ServerInviteCode_server_invite_code_unique": {
+          "name": "ServerInviteCode_server_invite_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "server_invite_code"
+          ]
+        }
+      }
+    },
+    "Server": {
+      "name": "Server",
+      "schema": "",
+      "columns": {
+        "server_id": {
+          "name": "server_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "server_name": {
+          "name": "server_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creator_id": {
+          "name": "creator_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Server_creator_id_User_user_id_fk": {
+          "name": "Server_creator_id_User_user_id_fk",
+          "tableFrom": "Server",
+          "tableTo": "User",
+          "columnsFrom": [
+            "creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "ServerUser": {
+      "name": "ServerUser",
+      "schema": "",
+      "columns": {
+        "server_id": {
+          "name": "server_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "server_invite_code_id": {
+          "name": "server_invite_code_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_user_kicked": {
+          "name": "is_user_kicked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_user_banned": {
+          "name": "is_user_banned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "user_banned_until_date": {
+          "name": "user_banned_until_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "role_type",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "server_user_server_id_index": {
+          "name": "server_user_server_id_index",
+          "columns": [
+            "server_id"
+          ],
+          "isUnique": false
+        },
+        "server_user_user_id_index": {
+          "name": "server_user_user_id_index",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ServerUser_server_id_Server_server_id_fk": {
+          "name": "ServerUser_server_id_Server_server_id_fk",
+          "tableFrom": "ServerUser",
+          "tableTo": "Server",
+          "columnsFrom": [
+            "server_id"
+          ],
+          "columnsTo": [
+            "server_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ServerUser_user_id_User_user_id_fk": {
+          "name": "ServerUser_user_id_User_user_id_fk",
+          "tableFrom": "ServerUser",
+          "tableTo": "User",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ServerUser_server_invite_code_id_ServerInviteCode_server_invite_code_id_fk": {
+          "name": "ServerUser_server_invite_code_id_ServerInviteCode_server_invite_code_id_fk",
+          "tableFrom": "ServerUser",
+          "tableTo": "ServerInviteCode",
+          "columnsFrom": [
+            "server_invite_code_id"
+          ],
+          "columnsTo": [
+            "server_invite_code_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "server_user_id": {
+          "name": "server_user_id",
+          "columns": [
+            "server_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "User": {
+      "name": "User",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_name": {
+          "name": "user_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_email": {
+          "name": "user_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_password": {
+          "name": "user_password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "user_user_name_index": {
+          "name": "user_user_name_index",
+          "columns": [
+            "user_name"
+          ],
+          "isUnique": true
+        },
+        "user_user_email_index": {
+          "name": "user_user_email_index",
+          "columns": [
+            "user_email"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "User_user_name_unique": {
+          "name": "User_user_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_name"
+          ]
+        },
+        "User_user_email_unique": {
+          "name": "User_user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_email"
+          ]
+        }
+      }
+    }
+  },
+  "enums": {
+    "receiver_type": {
+      "name": "receiver_type",
+      "values": {
+        "server_channel": "server_channel",
+        "private_channel": "private_channel"
+      }
+    },
+    "role_type": {
+      "name": "role_type",
+      "values": {
+        "creator": "creator",
+        "administrator": "administrator",
+        "moderator": "moderator",
+        "user": "user"
+      }
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

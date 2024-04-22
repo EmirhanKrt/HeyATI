@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:migrate": "bun run ./server/db/migrate.ts",
+    "db:seed": "bun run ./server/db/seed.ts"
   },
   "dependencies": {
     "@elysiajs/bearer": "^1.0.2",
@@ -14,17 +17,22 @@
     "@elysiajs/eden": "^1.0.11",
     "@elysiajs/jwt": "^1.0.2",
     "@elysiajs/swagger": "^1.0.3",
+    "drizzle-orm": "^0.30.9",
+    "drizzle-typebox": "^0.1.1",
     "elysia": "^1.0.13",
     "next": "14.2.2",
+    "postgres": "^3.4.4",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "bun-types": "^1.1.4",
+    "drizzle-kit": "^0.20.17",
     "eslint": "^8",
-    "eslint-config-next": "14.2.2"
+    "eslint-config-next": "14.2.2",
+    "typescript": "^5"
   }
 }
