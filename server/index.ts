@@ -1,6 +1,11 @@
 import { Elysia } from "elysia";
 
-const app = new Elysia({ prefix: "/api" });
+import * as plugins from "./plugins";
+
+const app = new Elysia({ prefix: "/api" })
+  .use(plugins.docsPlugin)
+  .use(plugins.corsPlugin)
+  .use(plugins.errorPlugin);
 
 export const GET = app.handle;
 export const POST = app.handle;
