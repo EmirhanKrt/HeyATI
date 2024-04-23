@@ -1,7 +1,7 @@
 import type { App } from "@/server";
 import { treaty } from "@elysiajs/eden";
 
-const getBaseUrl = () => {
+export const getBaseUrl = () => {
   if (typeof window !== "undefined") return window.location.origin;
   return `http://localhost:${process.env.PORT ?? 3000}`;
 };

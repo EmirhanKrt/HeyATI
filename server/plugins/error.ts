@@ -6,7 +6,7 @@ import {
   ValidationErrorResponseData,
 } from "@/server/types";
 
-const mapMessage: (message: string) => string = (message: string) => {
+const mapMessage: (message: string) => string = (message) => {
   switch (true) {
     case message == "Unexpected property":
       return "Invalid property.";
