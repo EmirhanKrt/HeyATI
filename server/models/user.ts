@@ -26,7 +26,7 @@ export const userInsertSchemaWithoutUserId = t.Omit(userInsertSchema, [
   "updated_at",
 ]);
 
-const userSuccessResponseBodySchema = t.Object({
+const userSuccessResponseBodyDataSchema = t.Object({
   user: userSelectSchemaWithoutSensitiveData,
 });
 
@@ -34,8 +34,8 @@ const userByUserNameRequestParamsSchema = t.Object({
   user_name: schemaRules.user_name,
 });
 
-const userMeAndAnyUserByUserNameSuccessResponseSchema =
-  generateSuccessReponseBodySchema(userSuccessResponseBodySchema);
+const userMeAndUserByUserNameSuccessResponseBodySchema =
+  generateSuccessReponseBodySchema(userSuccessResponseBodyDataSchema);
 
 export type UserType = Static<typeof userSelectSchema>;
 
@@ -44,12 +44,12 @@ export type SafeUserType = Static<typeof userSelectSchemaWithoutSensitiveData>;
 export type UserInsertType = Static<typeof userInsertSchemaWithoutUserId>;
 
 export type UserMeAndAnyUserByUserNameSuccessResponseType = Static<
-  typeof userMeAndAnyUserByUserNameSuccessResponseSchema
+  typeof userMeAndUserByUserNameSuccessResponseBodySchema
 >;
 
 export const userModel = new Elysia().model({
-  "user.get.me.response.body": userMeAndAnyUserByUserNameSuccessResponseSchema,
+  "user.get.me.response.body": userMeAndUserByUserNameSuccessResponseBodySchema,
   "user.get.user_name.request.params": userByUserNameRequestParamsSchema,
   "user.get.user_name.response.body":
-    userMeAndAnyUserByUserNameSuccessResponseSchema,
+    userMeAndUserByUserNameSuccessResponseBodySchema,
 });

@@ -1,9 +1,105 @@
 {
-  "id": "1fd0a451-58ad-4c4b-bec9-7605156fce0b",
+  "id": "884f5060-ca49-4d5d-abb0-a6fe08dbaff5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
   "tables": {
+    "ChannelMessage": {
+      "name": "ChannelMessage",
+      "schema": "",
+      "columns": {
+        "channel_message_id": {
+          "name": "channel_message_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "channel_message_content": {
+          "name": "channel_message_content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sender_id": {
+          "name": "sender_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channel_id": {
+          "name": "channel_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "replied_message_id": {
+          "name": "replied_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_edited": {
+          "name": "is_edited",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "channel_message_channel_id_index": {
+          "name": "channel_message_channel_id_index",
+          "columns": [
+            "channel_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ChannelMessage_sender_id_User_user_id_fk": {
+          "name": "ChannelMessage_sender_id_User_user_id_fk",
+          "tableFrom": "ChannelMessage",
+          "tableTo": "User",
+          "columnsFrom": [
+            "sender_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ChannelMessage_channel_id_Channel_channel_id_fk": {
+          "name": "ChannelMessage_channel_id_Channel_channel_id_fk",
+          "tableFrom": "ChannelMessage",
+          "tableTo": "Channel",
+          "columnsFrom": [
+            "channel_id"
+          ],
+          "columnsTo": [
+            "channel_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "Channel": {
       "name": "Channel",
       "schema": "",
@@ -26,8 +122,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "creator_id": {
-          "name": "creator_id",
+        "owner_id": {
+          "name": "owner_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -67,15 +163,15 @@
           "columnsTo": [
             "server_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "Channel_creator_id_User_user_id_fk": {
-          "name": "Channel_creator_id_User_user_id_fk",
+        "Channel_owner_id_User_user_id_fk": {
+          "name": "Channel_owner_id_User_user_id_fk",
           "tableFrom": "Channel",
           "tableTo": "User",
           "columnsFrom": [
-            "creator_id"
+            "owner_id"
           ],
           "columnsTo": [
             "user_id"
@@ -109,8 +205,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "creator_id": {
-          "name": "creator_id",
+        "owner_id": {
+          "name": "owner_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -158,12 +254,12 @@
         }
       },
       "foreignKeys": {
-        "Event_creator_id_User_user_id_fk": {
-          "name": "Event_creator_id_User_user_id_fk",
+        "Event_owner_id_User_user_id_fk": {
+          "name": "Event_owner_id_User_user_id_fk",
           "tableFrom": "Event",
           "tableTo": "User",
           "columnsFrom": [
-            "creator_id"
+            "owner_id"
           ],
           "columnsTo": [
             "user_id"
@@ -181,46 +277,34 @@
           "columnsTo": [
             "channel_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "Message": {
-      "name": "Message",
+    "PrivateMessage": {
+      "name": "PrivateMessage",
       "schema": "",
       "columns": {
-        "message_id": {
-          "name": "message_id",
+        "private_message_id": {
+          "name": "private_message_id",
           "type": "serial",
           "primaryKey": true,
           "notNull": true
         },
-        "message_content": {
-          "name": "message_content",
+        "private_message_content": {
+          "name": "private_message_content",
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "message_file": {
-          "name": "message_file",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "sender_id": {
           "name": "sender_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
-        },
-        "receiver_type": {
-          "name": "receiver_type",
-          "type": "receiver_type",
-          "primaryKey": false,
-          "notNull": false
         },
         "receiver_id": {
           "name": "receiver_id",
@@ -233,6 +317,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "is_edited": {
+          "name": "is_edited",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "updated_at": {
           "name": "updated_at",
@@ -250,8 +341,8 @@
         }
       },
       "indexes": {
-        "message_receiver_id_index": {
-          "name": "message_receiver_id_index",
+        "private_message_receiver_id_index": {
+          "name": "private_message_receiver_id_index",
           "columns": [
             "receiver_id"
           ],
@@ -259,12 +350,25 @@
         }
       },
       "foreignKeys": {
-        "Message_sender_id_User_user_id_fk": {
-          "name": "Message_sender_id_User_user_id_fk",
-          "tableFrom": "Message",
+        "PrivateMessage_sender_id_User_user_id_fk": {
+          "name": "PrivateMessage_sender_id_User_user_id_fk",
+          "tableFrom": "PrivateMessage",
           "tableTo": "User",
           "columnsFrom": [
             "sender_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "PrivateMessage_receiver_id_User_user_id_fk": {
+          "name": "PrivateMessage_receiver_id_User_user_id_fk",
+          "tableFrom": "PrivateMessage",
+          "tableTo": "User",
+          "columnsFrom": [
+            "receiver_id"
           ],
           "columnsTo": [
             "user_id"
@@ -292,8 +396,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "creator_id": {
-          "name": "creator_id",
+        "owner_id": {
+          "name": "owner_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -366,7 +470,7 @@
         "invite_code_user_id_index": {
           "name": "invite_code_user_id_index",
           "columns": [
-            "creator_id"
+            "owner_id"
           ],
           "isUnique": false
         }
@@ -382,15 +486,15 @@
           "columnsTo": [
             "server_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "ServerInviteCode_creator_id_User_user_id_fk": {
-          "name": "ServerInviteCode_creator_id_User_user_id_fk",
+        "ServerInviteCode_owner_id_User_user_id_fk": {
+          "name": "ServerInviteCode_owner_id_User_user_id_fk",
           "tableFrom": "ServerInviteCode",
           "tableTo": "User",
           "columnsFrom": [
-            "creator_id"
+            "owner_id"
           ],
           "columnsTo": [
             "user_id"
@@ -426,8 +530,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "creator_id": {
-          "name": "creator_id",
+        "server_description": {
+          "name": "server_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "owner_id": {
+          "name": "owner_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -449,12 +560,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "Server_creator_id_User_user_id_fk": {
-          "name": "Server_creator_id_User_user_id_fk",
+        "Server_owner_id_User_user_id_fk": {
+          "name": "Server_owner_id_User_user_id_fk",
           "tableFrom": "Server",
           "tableTo": "User",
           "columnsFrom": [
-            "creator_id"
+            "owner_id"
           ],
           "columnsTo": [
             "user_id"
@@ -512,7 +623,8 @@
           "name": "role",
           "type": "role_type",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "'user'"
         },
         "updated_at": {
           "name": "updated_at",
@@ -556,7 +668,7 @@
           "columnsTo": [
             "server_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "ServerUser_user_id_User_user_id_fk": {
@@ -689,17 +801,10 @@
     }
   },
   "enums": {
-    "receiver_type": {
-      "name": "receiver_type",
-      "values": {
-        "server_channel": "server_channel",
-        "private_channel": "private_channel"
-      }
-    },
     "role_type": {
       "name": "role_type",
       "values": {
-        "creator": "creator",
+        "owner": "owner",
         "administrator": "administrator",
         "moderator": "moderator",
         "user": "user"

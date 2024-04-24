@@ -29,9 +29,9 @@ export abstract class AuthService {
       user.user_password
     );
 
-    if (isUserPasswordMatched) return user;
+    if (!isUserPasswordMatched) throw validationError;
 
-    throw validationError;
+    return user;
   }
 
   static async registerUser({

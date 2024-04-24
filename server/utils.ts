@@ -1,6 +1,8 @@
 import { TSchema, t } from "elysia";
 
-export const generateSuccessReponseBodySchema = (dataSchema: TSchema) => {
+export const generateSuccessReponseBodySchema = <T extends TSchema>(
+  dataSchema: T
+) => {
   const success = t.Literal(true);
   const message = t.String({ default: null });
   const data = dataSchema;

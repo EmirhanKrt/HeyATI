@@ -21,7 +21,7 @@ export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
   })
   .use(authModel)
   .post(
-    "/login/",
+    "/login",
     async (context): Promise<AuthRegisterAndLoginSuccessResponseType> => {
       const contextWithJWT = context as ContextWithJWT;
 
@@ -48,7 +48,7 @@ export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
     }
   )
   .post(
-    "/register/",
+    "/register",
     async (context): Promise<AuthRegisterAndLoginSuccessResponseType> => {
       const contextWithJWT = context as ContextWithJWT;
 

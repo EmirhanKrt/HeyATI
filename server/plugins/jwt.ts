@@ -4,8 +4,7 @@ import jwt from "@elysiajs/jwt";
 
 import { jwtPayloadSchema } from "@/server/models";
 
-let JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) JWT_SECRET = "jwt_secret";
+const JWT_SECRET = process.env.JWT_SECRET || "jwt_secret";
 
 const jwtPluginConfig = {
   name: "jwt",

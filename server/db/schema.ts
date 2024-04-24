@@ -13,8 +13,11 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 
-const created_at = timestamp("created_at").notNull().defaultNow();
-const updated_at = timestamp("updated_at")
+const created_at = timestamp("created_at", { mode: "string" })
+  .notNull()
+  .defaultNow();
+
+const updated_at = timestamp("updated_at", { mode: "string" })
   .notNull()
   .defaultNow()
   .$onUpdateFn(() => sql`now()`);
@@ -46,7 +49,8 @@ export const userTable = pgTable(
 export const serverTable = pgTable("Server", {
   server_id: serial("server_id").primaryKey().notNull(),
   server_name: text("server_name").notNull(),
-  creator_id: integer("creator_id")
+  server_description: text("server_description").notNull().default(""),
+  owner_id: integer("owner_id")
     .notNull()
     .references(() => userTable.user_id),
   updated_at,
@@ -61,8 +65,8 @@ export const serverInviteCodeTable = pgTable(
       .notNull(),
     server_id: integer("server_id")
       .notNull()
-      .references(() => serverTable.server_id),
-    creator_id: integer("creator_id")
+      .references(() => serverTable.server_id, { onDelete: "cascade" }),
+    owner_id: integer("owner_id")
       .notNull()
       .references(() => userTable.user_id),
     server_invite_code: uuid("server_invite_code")
@@ -70,7 +74,7 @@ export const serverInviteCodeTable = pgTable(
       .notNull()
       .defaultRandom(),
     max_use_count: integer("max_use_count").notNull().default(100),
-    due_date: timestamp("due_date")
+    due_date: timestamp("due_date", { mode: "string" })
       .notNull()
       .default(sql`now() + interval '1 month'`),
     total_use_count: integer("total_use_count").notNull().default(0),
@@ -87,14 +91,14 @@ export const serverInviteCodeTable = pgTable(
         table.server_id
       ),
       invite_code_user_id_index: index("invite_code_user_id_index").on(
-        table.creator_id
+        table.owner_id
       ),
     };
   }
 );
 
 export const roleType = pgEnum("role_type", [
-  "creator",
+  "owner",
   "administrator",
   "moderator",
   "user",
@@ -105,7 +109,7 @@ export const serverUserTable = pgTable(
   {
     server_id: integer("server_id")
       .notNull()
-      .references(() => serverTable.server_id),
+      .references(() => serverTable.server_id, { onDelete: "cascade" }),
     user_id: integer("user_id")
       .notNull()
       .references(() => userTable.user_id),
@@ -114,8 +118,10 @@ export const serverUserTable = pgTable(
     ),
     is_user_kicked: boolean("is_user_kicked").notNull().default(false),
     is_user_banned: boolean("is_user_banned").notNull().default(false),
-    user_banned_until_date: timestamp("user_banned_until_date"),
-    role: roleType("role"),
+    user_banned_until_date: timestamp("user_banned_until_date", {
+      mode: "string",
+    }),
+    role: roleType("role").default("user"),
     updated_at,
     created_at,
   },
@@ -140,8 +146,8 @@ export const channelTable = pgTable(
     channel_name: text("channel_name").notNull(),
     server_id: integer("server_id")
       .notNull()
-      .references(() => serverTable.server_id),
-    creator_id: integer("creator_id")
+      .references(() => serverTable.server_id, { onDelete: "cascade" }),
+    owner_id: integer("owner_id")
       .notNull()
       .references(() => userTable.user_id),
     updated_at,
@@ -154,30 +160,49 @@ export const channelTable = pgTable(
   })
 );
 
-export const messageReceiverType = pgEnum("receiver_type", [
-  "server_channel",
-  "private_channel",
-]);
-
-export const messageTable = pgTable(
-  "Message",
+export const privateMessageTable = pgTable(
+  "PrivateMessage",
   {
-    message_id: serial("message_id").primaryKey().notNull(),
-    message_content: text("message_content").notNull(),
-    message_file: text("message_file"),
+    private_message_id: serial("private_message_id").primaryKey().notNull(),
+    private_message_content: text("private_message_content").notNull(),
     sender_id: integer("sender_id")
       .notNull()
       .references(() => userTable.user_id),
-    receiver_type: messageReceiverType("receiver_type"),
-    receiver_id: integer("receiver_id").notNull(),
+    receiver_id: integer("receiver_id")
+      .notNull()
+      .references(() => userTable.user_id),
     replied_message_id: integer("replied_message_id"),
+    is_edited: boolean("is_edited").notNull().default(false),
     updated_at,
     created_at,
   },
   (table) => ({
-    message_receiver_id_index: index("message_receiver_id_index").on(
-      table.receiver_id
-    ),
+    private_message_receiver_id_index: index(
+      "private_message_receiver_id_index"
+    ).on(table.receiver_id),
+  })
+);
+
+export const channelMessageTable = pgTable(
+  "ChannelMessage",
+  {
+    channel_message_id: serial("channel_message_id").primaryKey().notNull(),
+    channel_message_content: text("channel_message_content").notNull(),
+    sender_id: integer("sender_id")
+      .notNull()
+      .references(() => userTable.user_id),
+    channel_id: integer("channel_id")
+      .notNull()
+      .references(() => channelTable.channel_id, { onDelete: "cascade" }),
+    replied_message_id: integer("replied_message_id"),
+    is_edited: boolean("is_edited").notNull().default(false),
+    updated_at,
+    created_at,
+  },
+  (table) => ({
+    channel_message_channel_id_index: index(
+      "channel_message_channel_id_index"
+    ).on(table.channel_id),
   })
 );
 
@@ -187,14 +212,18 @@ export const eventTable = pgTable(
     event_id: serial("event_id").primaryKey().notNull(),
     event_title: text("event_title").notNull(),
     event_description: text("event_description").notNull(),
-    creator_id: integer("creator_id")
+    owner_id: integer("owner_id")
       .notNull()
       .references(() => userTable.user_id),
     channel_id: integer("channel_id")
       .notNull()
-      .references(() => channelTable.channel_id),
-    event_start_date: timestamp("event_start_date").notNull(),
-    event_finish_date: timestamp("event_finish_date").notNull(),
+      .references(() => channelTable.channel_id, { onDelete: "cascade" }),
+    event_start_date: timestamp("event_start_date", {
+      mode: "string",
+    }).notNull(),
+    event_finish_date: timestamp("event_finish_date", {
+      mode: "string",
+    }).notNull(),
     updated_at,
     created_at,
   },

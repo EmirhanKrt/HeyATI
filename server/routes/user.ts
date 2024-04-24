@@ -11,7 +11,7 @@ export const userRoutes = new Elysia({
 })
   .use(userModel)
   .get(
-    "/me/",
+    "/me",
     async (context) => {
       const contextWithUser = context as ContextWithUser;
 
@@ -32,7 +32,7 @@ export const userRoutes = new Elysia({
     }
   )
   .get(
-    `/:${userTable.user_name.name}/`,
+    `/:${userTable.user_name.name}`,
     async ({ params: { user_name } }) => {
       const matchedUser = await UserService.getUserByUserName(user_name);
 
