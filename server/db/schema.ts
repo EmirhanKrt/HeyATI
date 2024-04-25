@@ -9,7 +9,6 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
-  primaryKey,
   index,
 } from "drizzle-orm/pg-core";
 
@@ -50,6 +49,9 @@ export const serverTable = pgTable("Server", {
   server_id: serial("server_id").primaryKey().notNull(),
   server_name: text("server_name").notNull(),
   server_description: text("server_description").notNull().default(""),
+  owner_id: integer("owner_id")
+    .notNull()
+    .references(() => userTable.user_id),
   updated_at,
   created_at,
 });
@@ -111,7 +113,7 @@ export const serverUserTable = pgTable(
     server_invite_code_id: integer("server_invite_code_id").references(
       () => serverInviteCodeTable.server_invite_code_id
     ),
-    role: roleType("role").default("user"),
+    role: roleType("role").default("user").notNull(),
     is_user_active: boolean("is_user_active").notNull().default(true),
     is_user_banned: boolean("is_user_banned").notNull().default(false),
     user_banned_until_date: timestamp("user_banned_until_date", {

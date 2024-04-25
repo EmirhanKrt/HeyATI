@@ -38,3 +38,34 @@ export interface ContextWithJWT extends Context {
 export interface ContextWithUser extends Context {
   user: JWTPayloadType;
 }
+
+export type RoleType = "owner" | "administrator" | "moderator" | "user";
+
+export type PermissionKeys =
+  | "unknown"
+  | "get_server"
+  | "get_server_user"
+  | "get_server_invite"
+  | "get_server_channel"
+  | "get_server_channel_message"
+  | "get_server_channel_event"
+  | "post_server_invite"
+  | "post_server_channel"
+  | "post_server_channel_message"
+  | "post_server_channel_event"
+  | "put_server"
+  | "put_server_user"
+  | "put_server_invite"
+  | "put_server_channel"
+  | "put_server_channel_message"
+  | "put_server_channel_event"
+  | "delete_server"
+  | "delete_server_user"
+  | "delete_server_invite"
+  | "delete_server_channel"
+  | "delete_server_channel_message"
+  | "delete_server_channel_event";
+
+export type PermissionObjectType = {
+  [key in PermissionKeys]: AccessType;
+};

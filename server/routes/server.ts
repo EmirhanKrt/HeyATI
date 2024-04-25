@@ -54,7 +54,7 @@ export const serverRoutes = new Elysia({
         })
         .put(
           `/:${serverTable.server_id.name}`,
-          async ({ body, server, serverUser }) => {
+          async ({ body, server }) => {
             if (!Object.keys(body).length)
               throw new BodyValidationError(
                 [
@@ -63,11 +63,6 @@ export const serverRoutes = new Elysia({
                   { path: "owner_id", message: "Invalid value." },
                 ],
                 "For update the server details, server_description or server name or owner id must be provided."
-              );
-
-            if (serverUser.role !== "owner")
-              throw new ForbiddenError(
-                "User cannot update details of this server."
               );
 
             const updatePayload = {
@@ -105,23 +100,17 @@ export const serverRoutes = new Elysia({
             body: "server.put.server_id.request.body",
           }
         )
-        .delete(
-          `/:${serverTable.server_id.name}`,
-          async ({ server, serverUser }) => {
-            if (serverUser.role !== "owner")
-              throw new ForbiddenError("User cannot delete the server.");
+        .delete(`/:${serverTable.server_id.name}`, async ({ server }) => {
+          const deletedServer = await ServerService.deleteServer(
+            server.server_id
+          );
 
-            const deletedServer = await ServerService.deleteServer(
-              server.server_id
-            );
-
-            return {
-              success: true,
-              message: "Deleted server succefully.",
-              data: {
-                server: ServerService.toSafeServerType(deletedServer),
-              },
-            };
-          }
-        )
+          return {
+            success: true,
+            message: "Deleted server succefully.",
+            data: {
+              server: ServerService.toSafeServerType(deletedServer),
+            },
+          };
+        })
   );
