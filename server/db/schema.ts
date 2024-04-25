@@ -50,9 +50,6 @@ export const serverTable = pgTable("Server", {
   server_id: serial("server_id").primaryKey().notNull(),
   server_name: text("server_name").notNull(),
   server_description: text("server_description").notNull().default(""),
-  owner_id: integer("owner_id")
-    .notNull()
-    .references(() => userTable.user_id),
   updated_at,
   created_at,
 });
@@ -90,9 +87,6 @@ export const serverInviteCodeTable = pgTable(
       invite_code_server_id_index: index("invite_code_server_id_index").on(
         table.server_id
       ),
-      invite_code_user_id_index: index("invite_code_user_id_index").on(
-        table.owner_id
-      ),
     };
   }
 );
@@ -107,6 +101,7 @@ export const roleType = pgEnum("role_type", [
 export const serverUserTable = pgTable(
   "ServerUser",
   {
+    server_user_id: serial("server_user_id").primaryKey().notNull(),
     server_id: integer("server_id")
       .notNull()
       .references(() => serverTable.server_id, { onDelete: "cascade" }),
@@ -116,20 +111,16 @@ export const serverUserTable = pgTable(
     server_invite_code_id: integer("server_invite_code_id").references(
       () => serverInviteCodeTable.server_invite_code_id
     ),
-    is_user_kicked: boolean("is_user_kicked").notNull().default(false),
+    role: roleType("role").default("user"),
+    is_user_active: boolean("is_user_active").notNull().default(true),
     is_user_banned: boolean("is_user_banned").notNull().default(false),
     user_banned_until_date: timestamp("user_banned_until_date", {
       mode: "string",
     }),
-    role: roleType("role").default("user"),
     updated_at,
     created_at,
   },
   (table) => ({
-    server_user_id: primaryKey({
-      name: "server_user_id",
-      columns: [table.server_id, table.user_id],
-    }),
     server_user_server_id_index: index("server_user_server_id_index").on(
       table.server_id
     ),
