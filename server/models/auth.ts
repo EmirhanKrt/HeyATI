@@ -18,7 +18,6 @@ const authLoginRequestBodySchema = t.Pick(userSelectSchema, [
 
 const authRegisterAndLoginSuccessResponseBodySchema = t.Object({
   user: userSelectSchemaWithoutSensitiveData,
-  token: t.String(),
 });
 
 const authRegisterAndLoginSuccessResponseSchema =

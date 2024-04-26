@@ -1,5 +1,5 @@
 import Elysia from "elysia";
-import bearer from "@elysiajs/bearer";
+import cookie from "@elysiajs/cookie";
 import jwt from "@elysiajs/jwt";
 
 import { jwtPayloadSchema } from "@/server/models";
@@ -14,5 +14,5 @@ const jwtPluginConfig = {
 };
 
 export const jwtPlugin = (app: Elysia) => {
-  return app.use(bearer()).use(jwt({ ...jwtPluginConfig }));
+  return app.use(cookie()).use(jwt({ ...jwtPluginConfig }));
 };

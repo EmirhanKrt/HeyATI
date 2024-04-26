@@ -5,20 +5,10 @@ import {
   AuthRegisterRequestBodyType,
   authModel,
 } from "@/server/models";
-import { getBaseUrl } from "@/lib/api";
 import { ContextWithJWT } from "@/server/types";
 import { AuthService, UserService } from "@/server/services";
 
 export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
-  .onBeforeHandle(async (context) => {
-    const contextWithJWT = context as ContextWithJWT;
-
-    if (contextWithJWT.bearer) {
-      const user = await contextWithJWT.jwt.verify(contextWithJWT.bearer);
-
-      if (user) contextWithJWT.set.redirect = getBaseUrl() + "/";
-    }
-  })
   .use(authModel)
   .post(
     "/login",
@@ -33,12 +23,23 @@ export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
         UserService.toJWTPayloadType(user)
       );
 
+      context.set.cookie = {
+        token: {
+          value: token,
+          httpOnly: true,
+          path: "/",
+          priority: "high",
+          sameSite: "strict",
+          maxAge: 60 * 60 * 24 * 7,
+          secure: process.env.ENVIRONMENT === "PRODUCTION",
+        },
+      };
+
       return {
         success: true,
         message: "User logged in successfully!",
         data: {
           user: UserService.toSafeUserType(user),
-          token,
         },
       };
     },
@@ -61,12 +62,23 @@ export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
         UserService.toJWTPayloadType(user)
       );
 
+      context.set.cookie = {
+        token: {
+          value: token,
+          httpOnly: true,
+          path: "/",
+          priority: "high",
+          sameSite: "strict",
+          maxAge: 60 * 60 * 24 * 7,
+          secure: process.env.ENVIRONMENT === "PRODUCTION",
+        },
+      };
+
       return {
         success: true,
         message: "User registered successfully!",
         data: {
           user: UserService.toSafeUserType(user),
-          token,
         },
       };
     },
@@ -74,4 +86,21 @@ export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
       body: "auth.post.register.request.body",
       response: "auth.post.register.response.body",
     }
-  );
+  )
+  .post("/logout", (context) => {
+    context.cookie.token.set({
+      value: "",
+      httpOnly: true,
+      path: "/",
+      priority: "high",
+      sameSite: "strict",
+      maxAge: 0,
+      secure: process.env.ENVIRONMENT === "PRODUCTION",
+    });
+
+    return {
+      success: true,
+      message: "User logged out successfully!",
+      data: null,
+    };
+  });

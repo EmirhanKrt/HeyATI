@@ -32,7 +32,6 @@ export interface ContextWithJWT extends Context {
       jwt?: string | undefined
     ) => Promise<false | Record<string, string | number>>;
   };
-  bearer: string;
 }
 
 export interface ContextWithUser extends Context {

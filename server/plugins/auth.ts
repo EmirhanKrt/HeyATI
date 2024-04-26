@@ -1,20 +1,28 @@
-import Elysia from "elysia";
+import Elysia, { t } from "elysia";
 import { ContextWithJWT } from "@/server/types";
 import { UnauthorizedError } from "@/server/errors";
 
 // Protected Route Middleware
 export const authPlugin = (app: Elysia) => {
-  return app.derive(async (context) => {
-    const contextWithJWT = context as ContextWithJWT;
+  return app
+    .onTransform(({ cookie }) => {
+      if (!cookie.token.value) {
+        throw new UnauthorizedError("User is not authorized!");
+      }
+    })
+    .derive(async (context) => {
+      const contextWithJWT = context as ContextWithJWT;
 
-    const user = await contextWithJWT.jwt.verify(contextWithJWT.bearer);
+      const token = context.cookie.token.value as string;
 
-    if (!user) {
-      throw new UnauthorizedError("User is not authorized!");
-    }
+      const user = await contextWithJWT.jwt.verify(token);
 
-    return {
-      user,
-    };
-  });
+      if (!user) {
+        throw new UnauthorizedError("User is not authorized!");
+      }
+
+      return {
+        user,
+      };
+    });
 };
