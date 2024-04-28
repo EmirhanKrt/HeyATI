@@ -10,7 +10,8 @@ const app = new Elysia({ prefix: "/api" })
   .use(plugins.jwtPlugin)
   .use(routes.authRoutes)
   .use(plugins.authPlugin)
-  .use(routes.protectedRoutes);
+  .use(routes.protectedRoutes)
+  .compile();
 
 export const GET = app.handle;
 export const POST = app.handle;

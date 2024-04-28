@@ -37,7 +37,7 @@ export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
 
       return {
         success: true,
-        message: "User logged in successfully!",
+        message: "Logged in successfully! Redirecting...",
         data: {
           user: UserService.toSafeUserType(user),
         },
@@ -74,9 +74,11 @@ export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
         },
       };
 
+      context.set.status = 201;
+
       return {
         success: true,
-        message: "User registered successfully!",
+        message: "Created account successfully! Redirecting...",
         data: {
           user: UserService.toSafeUserType(user),
         },
@@ -100,7 +102,7 @@ export const authRoutes = new Elysia({ name: "auth-routes", prefix: "/auth" })
 
     return {
       success: true,
-      message: "User logged out successfully!",
+      message: "Logged out successfully! Redirecting...",
       data: null,
     };
   });
