@@ -19,7 +19,7 @@ export abstract class AuthService {
         { path: "user_email", message: "Invalid value." },
         { path: "user_password", message: "Invalid value." },
       ],
-      "User email or password is not correct."
+      "Email or password is not correct."
     );
 
     if (!user) throw validationError;
@@ -43,10 +43,9 @@ export abstract class AuthService {
     user_password_confirm,
   }: AuthRegisterRequestBodyType): Promise<UserType> {
     if (user_password !== user_password_confirm)
-      throw new BodyValidationError(
-        [{ path: "user_password_confirm", message: "Passwords not matched." }],
-        "User Password and User Password Confirm are not matched."
-      );
+      throw new BodyValidationError([
+        { path: "user_password_confirm", message: "Password not matched." },
+      ]);
 
     const userList = await UserService.getUserByUserNameOrUserEmail(
       user_email,

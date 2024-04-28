@@ -1,0 +1,18 @@
+.form_status_message_container {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  width: 100%;
+  height: fit-content;
+  flex-grow: 0;
+}
+
+.form_status_message_container div {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.form_status_message_container svg {
+  width: 24px !important;
+  height: 24px !important;
+}
