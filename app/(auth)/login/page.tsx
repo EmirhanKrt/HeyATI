@@ -14,8 +14,8 @@ type ErrorMessageObjectType = {
 const LoginPage = () => {
   const router = useRouter();
 
-  const [user_email, setUserEmail] = useState("emirhan@gmail.com");
-  const [user_password, setUserPassword] = useState("emirhan");
+  const [user_email, setUserEmail] = useState("");
+  const [user_password, setUserPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<ErrorMessageObjectType>({
     user_email: null,
@@ -122,7 +122,7 @@ const LoginPage = () => {
             {isLoading ? "Logging in..." : "Login"}
           </button>
           <Link href={"/register"}>
-            <button>I don't have an account</button>
+            <button>I don&apos;t have an account</button>
           </Link>
         </div>
       </Form.Body>
