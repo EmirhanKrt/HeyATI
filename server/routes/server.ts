@@ -107,7 +107,7 @@ export const serverRoutes = new Elysia({
 
           return {
             success: true,
-            message: "Deleted server succefully.",
+            message: "Deleted server successfully.",
             data: {
               server: ServerService.toSafeServerType(deletedServer),
             },
