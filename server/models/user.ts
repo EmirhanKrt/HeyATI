@@ -26,6 +26,14 @@ export const userInsertSchemaWithoutUserId = t.Omit(userInsertSchema, [
   "updated_at",
 ]);
 
+const userUpdateRequestBodySchema = t.Object({
+  first_name: t.Optional(schemaRules.first_name),
+  last_name: t.Optional(schemaRules.last_name),
+  old_user_password: t.Optional(schemaRules.user_password),
+  new_user_password: t.Optional(schemaRules.user_password),
+  new_user_password_confirm: t.Optional(schemaRules.user_password),
+});
+
 const userSuccessResponseBodyDataSchema = t.Object({
   user: userSelectSchemaWithoutSensitiveData,
 });
@@ -47,9 +55,10 @@ export type UserMeAndAnyUserByUserNameSuccessResponseType = Static<
   typeof userMeAndUserByUserNameSuccessResponseBodySchema
 >;
 
+export type UserUpdatePayloadType = Static<typeof userUpdateRequestBodySchema>;
+
 export const userModel = new Elysia().model({
-  "user.get.me.response.body": userMeAndUserByUserNameSuccessResponseBodySchema,
-  "user.get.user_name.request.params": userByUserNameRequestParamsSchema,
-  "user.get.user_name.response.body":
-    userMeAndUserByUserNameSuccessResponseBodySchema,
+  "user.all.response.body": userMeAndUserByUserNameSuccessResponseBodySchema,
+  "user.put.me.request.body": userUpdateRequestBodySchema,
+  "user.all.user_name.request.params": userByUserNameRequestParamsSchema,
 });
