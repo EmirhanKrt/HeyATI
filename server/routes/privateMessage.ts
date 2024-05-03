@@ -1,8 +1,9 @@
-import Elysia, { NotFoundError, t } from "elysia";
+import Elysia from "elysia";
 import { fileTable, privateMessageTable } from "@/server/db/schema";
 import {
   FileInsertPayloadType,
   fileModel,
+  FileType,
   privateMessageModel,
   PrivateMessageSuccessResponseBodyDataType,
   PrivateMessageType,
@@ -13,22 +14,59 @@ import { ContextWithUser } from "@/server/types";
 import { FileService, PrivateMessageService } from "@/server/services";
 import { ParamsValidationError } from "@/server/errors";
 
-type ContextWithSenderAndReceiverUser = ContextWithUser & {
-  receiverUser: SafeUserType;
+type ContextWithSenderAndTargetUser = ContextWithUser & {
+  targetUser: SafeUserType;
 };
 
-type ContextWithMessage = ContextWithSenderAndReceiverUser & {
+type ContextWithMessage = ContextWithSenderAndTargetUser & {
   message: PrivateMessageType;
 };
 
+type ContextWithFile = ContextWithMessage & {
+  file: FileType;
+};
+
+const getPrivateMessagesRoute = new Elysia({
+  name: "get-private-messages-route",
+})
+  .use(privateMessageModel)
+  .get(
+    `/messages`,
+    async (context) => {
+      const { user: senderUser, targetUser } =
+        context as ContextWithSenderAndTargetUser;
+
+      const messageList = await PrivateMessageService.getMessages(
+        senderUser,
+        targetUser
+      );
+
+      return {
+        success: true,
+        message: "Messages retrived successfully.",
+        data: {
+          message: messageList,
+        },
+      };
+    },
+    { response: "private_message.index.get.response.body" }
+  );
+
 const privateMessageFileRoutes = new Elysia({
   name: "private-message-file-routes",
+  prefix: `/:${privateMessageTable.private_message_id.name}/file`,
 })
   .use(fileModel)
   .guard({
     params: "file.all.file_id.request.params",
   })
-  .get("", async (context) => {
+  .resolve(async (context) => {
+    if (context.params.file_id < 1)
+      throw new ParamsValidationError(
+        [{ path: "file_id", message: "Invalid value." }],
+        "File not found."
+      );
+
     const { message } = context as ContextWithMessage;
 
     const file = await PrivateMessageService.getFileByMessageId(
@@ -36,9 +74,28 @@ const privateMessageFileRoutes = new Elysia({
       context.params.file_id
     );
 
-    if (!file || !Bun.file(`./bucket/files/${file.file_path}`)) {
-      throw new NotFoundError("File not found on bucket.");
+    if (!file) {
+      throw new ParamsValidationError(
+        [{ path: "file_id", message: "Invalid value." }],
+        "File not found."
+      );
     }
+
+    const isFileExistsOnBucket = await Bun.file(
+      `./bucket/files/${file.file_path}`
+    ).exists();
+
+    if (!isFileExistsOnBucket) {
+      throw new ParamsValidationError(
+        [{ path: "file_id", message: "Invalid value." }],
+        "File not found."
+      );
+    }
+
+    return { file };
+  })
+  .get(`/:${fileTable.file_id.name}`, async (context) => {
+    const { file } = context as ContextWithFile;
 
     context.set.headers["Content-Type"] = file.file_type;
     context.set.headers[
@@ -48,36 +105,16 @@ const privateMessageFileRoutes = new Elysia({
     return Bun.file(`./bucket/files/${file.file_path}`);
   });
 
-export const privateMessageRoutes = new Elysia({
-  name: "private-message-routes",
+const crudPrivateMessageRoutes = new Elysia({
+  name: "crud-private-message-routes",
+  prefix: "/message",
 })
   .use(privateMessageModel)
-  .get(
-    `/messages`,
-    async (context) => {
-      const { user: senderUser, receiverUser } =
-        context as ContextWithSenderAndReceiverUser;
-
-      const messageList = await PrivateMessageService.getMessages(
-        senderUser,
-        receiverUser
-      );
-
-      return {
-        success: true,
-        message: "Messages retrived succefully.",
-        data: {
-          message: messageList,
-        },
-      };
-    },
-    { response: "private_message.index.get.response.body" }
-  )
   .post(
-    `/message`,
+    "",
     async (context) => {
-      const { user: senderUser, receiverUser } =
-        context as ContextWithSenderAndReceiverUser;
+      const { user: senderUser, targetUser } =
+        context as ContextWithSenderAndTargetUser;
 
       const { files, replied_message_id, private_message_content } =
         context.body;
@@ -100,7 +137,7 @@ export const privateMessageRoutes = new Elysia({
 
       const message = await PrivateMessageService.sendMessage(
         senderUser,
-        receiverUser,
+        targetUser,
         { replied_message_id, private_message_content }
       );
 
@@ -120,7 +157,7 @@ export const privateMessageRoutes = new Elysia({
 
       return {
         success: true,
-        message: "Message sent succefully.",
+        message: "Message sent successfully.",
         data: {
           message: responseMessageData,
         },
@@ -132,94 +169,108 @@ export const privateMessageRoutes = new Elysia({
       response: "private_message.all.response.body",
     }
   )
-  .group(`/message/:${privateMessageTable.private_message_id.name}`, (app) =>
-    app
-      .guard({
-        params: "private_message.all.message_id.request.params",
-        response: "private_message.all.response.body",
-      })
-      .resolve(async (context) => {
-        if (context.params.private_message_id < 1)
-          throw new ParamsValidationError(
-            [{ path: "private_message_id", message: "Invalid value." }],
-            "Private message not found."
-          );
+  .guard({
+    params: "private_message.all.message_id.request.params",
+    response: "private_message.all.response.body",
+  })
+  .resolve(async (context) => {
+    if (context.params.private_message_id < 1)
+      throw new ParamsValidationError(
+        [{ path: "private_message_id", message: "Invalid value." }],
+        "Private message not found."
+      );
 
-        const { user: senderUser, receiverUser } =
-          context as ContextWithSenderAndReceiverUser;
+    const { user: senderUser, targetUser } =
+      context as ContextWithSenderAndTargetUser;
 
-        const message = await PrivateMessageService.getMessage(
-          senderUser,
-          receiverUser,
-          context.params.private_message_id
-        );
+    const message = await PrivateMessageService.getMessage(
+      senderUser,
+      targetUser,
+      context.params.private_message_id
+    );
 
-        if (!message) {
-          throw new ParamsValidationError(
-            [{ path: "private_message_id", message: "Invalid value." }],
-            "Private message not found."
-          );
-        }
+    if (!message) {
+      throw new ParamsValidationError(
+        [{ path: "private_message_id", message: "Invalid value." }],
+        "Private message not found."
+      );
+    }
 
-        return { message };
-      })
-      .group(`/file/:${fileTable.file_id.name}`, (app) =>
-        app.use(privateMessageFileRoutes)
-      )
-      .get("", (context) => {
-        return {
-          success: true,
-          message: "Message retrived successfully.",
-          data: {
-            message: context.message,
-          },
-        };
-      })
-      .onBeforeHandle(async (context) => {
-        const { user: senderUser, message } = context as ContextWithMessage;
+    return { message };
+  })
+  .get(`/:${privateMessageTable.private_message_id.name}`, ({ message }) => {
+    return {
+      success: true,
+      message: "Message retrived successfully.",
+      data: {
+        message,
+      },
+    };
+  })
+  .onBeforeHandle(async (context) => {
+    const { user: senderUser, message } = context as ContextWithMessage;
 
-        if (message.sender_id !== senderUser.user_id) {
-          throw new ParamsValidationError(
-            [{ path: "private_message_id", message: "Invalid value." }],
-            "User cannot perform the action."
-          );
-        }
-      })
-      .put(
-        "",
-        async (context) => {
-          const { message } = context as ContextWithMessage;
+    if (message.sender_id !== senderUser.user_id) {
+      throw new ParamsValidationError(
+        [{ path: "private_message_id", message: "Invalid value." }],
+        "User cannot perform the action."
+      );
+    }
+  })
+  .put(
+    `/:${privateMessageTable.private_message_id.name}`,
+    async (context) => {
+      const { message } = context as ContextWithMessage;
 
-          const updatedMessage = await PrivateMessageService.updateMessage(
-            message.private_message_id,
-            context.body.private_message_content
-          );
+      const updatedMessage = await PrivateMessageService.updateMessage(
+        message.private_message_id,
+        context.body.private_message_content
+      );
 
-          return {
-            success: true,
-            message: "Message updated successfully.",
-            data: {
-              message: updatedMessage,
-            },
-          };
+      return {
+        success: true,
+        message: "Message updated successfully.",
+        data: {
+          message: updatedMessage,
         },
-        {
-          body: "private_message.put.message_id.request.body",
+      };
+    },
+    {
+      body: "private_message.put.message_id.request.body",
+    }
+  )
+  .delete(
+    `/:${privateMessageTable.private_message_id.name}`,
+    async (context) => {
+      const { message } = context as ContextWithMessage;
+
+      const fileList = await PrivateMessageService.getFilesByMessageId(
+        message.private_message_id
+      );
+
+      const deletedMessage = await PrivateMessageService.deleteMessage(
+        message.private_message_id
+      );
+
+      if (fileList) {
+        for (const file of fileList) {
+          await FileService.deleteFromBucket(file);
         }
-      )
-      .delete("", async (context) => {
-        const { message } = context as ContextWithMessage;
+      }
 
-        const deletedMessage = await PrivateMessageService.deleteMessage(
-          message.private_message_id
-        );
+      return {
+        success: true,
+        message: "Message deleted successfully.",
+        data: {
+          message: deletedMessage,
+        },
+      };
+    }
+  )
+  .use(privateMessageFileRoutes);
 
-        return {
-          success: true,
-          message: "Message deleted successfully.",
-          data: {
-            message: deletedMessage,
-          },
-        };
-      })
-  );
+export const privateMessageRoutes = new Elysia({
+  name: "private-message-routes",
+})
+  .use(getPrivateMessagesRoute)
+  .use(crudPrivateMessageRoutes);

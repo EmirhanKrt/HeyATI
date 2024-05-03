@@ -6,46 +6,43 @@ import { UserService } from "@/server/services";
 import { ParamsValidationError } from "@/server/errors";
 import { privateMessageRoutes } from "./privateMessage";
 
-export const userRoutes = new Elysia({
-  name: "user-routes",
-  prefix: "/user",
+const sameUserRoutes = new Elysia({
+  name: "same-user-routes",
+  prefix: "/me",
 })
   .use(userModel)
-  .guard({
-    response: "user.all.response.body",
-  })
-  .get("/me", async (context) => {
+  .resolve(async (context) => {
     const contextWithUser = context as ContextWithUser;
 
-    const matchedUser = await UserService.getUserByUserID(
-      contextWithUser.user.user_id
+    const matchedUser = await UserService.getUserByUserName(
+      contextWithUser.user.user_name
     );
 
+    if (!matchedUser)
+      throw new ParamsValidationError(
+        [{ path: "user_name", message: "Invalid value." }],
+        "User not found."
+      );
+
+    return { targetUser: matchedUser };
+  })
+  .get("", async ({ targetUser }) => {
     return {
       success: true,
-      message: "Retrived user succefully.",
+      message: "Retrived user successfully.",
       data: {
-        user: UserService.toSafeUserType(matchedUser!),
+        user: UserService.toSafeUserType(targetUser),
       },
     };
   })
   .put(
-    "/me",
-    async (context) => {
-      const contextWithUser = context as ContextWithUser;
-
-      const matchedUser = await UserService.getUserByUserID(
-        contextWithUser.user.user_id
-      );
-
-      const updatedUser = await UserService.updateUser(
-        context.body,
-        matchedUser!
-      );
+    "",
+    async ({ targetUser, body }) => {
+      const updatedUser = await UserService.updateUser(body, targetUser);
 
       return {
         success: true,
-        message: "Updated user succefully.",
+        message: "Updated user successfully.",
         data: {
           user: UserService.toSafeUserType(updatedUser),
         },
@@ -54,33 +51,56 @@ export const userRoutes = new Elysia({
     {
       body: "user.put.me.request.body",
     }
-  )
-  .group(`/:${userTable.user_name.name}`, (app) =>
-    app
-      .guard({
-        params: "user.all.user_name.request.params",
-      })
-      .resolve(async (context) => {
-        const matchedUser = await UserService.getUserByUserName(
-          context.params.user_name
-        );
-
-        if (!matchedUser)
-          throw new ParamsValidationError(
-            [{ path: "user_name", message: "Invalid value." }],
-            "User not found."
-          );
-
-        return { receiverUser: UserService.toSafeUserType(matchedUser) };
-      })
-      .get("", ({ receiverUser }) => {
-        return {
-          success: true,
-          message: "Retrived user succefully.",
-          data: {
-            user: receiverUser,
-          },
-        };
-      })
-      .use(privateMessageRoutes)
   );
+
+const otherUserRoutes = new Elysia({
+  name: "other-user-routes",
+  prefix: `/:${userTable.user_name.name}`,
+})
+  .use(userModel)
+  .guard({
+    params: "user.all.user_name.request.params",
+  })
+  .resolve(async (context) => {
+    if (
+      context.params.user_name.length < 3 ||
+      context.params.user_name.length > 16
+    )
+      throw new ParamsValidationError(
+        [{ path: "user_name", message: "Invalid value." }],
+        "User not found."
+      );
+
+    const matchedUser = await UserService.getUserByUserName(
+      context.params.user_name
+    );
+
+    if (!matchedUser)
+      throw new ParamsValidationError(
+        [{ path: "user_name", message: "Invalid value." }],
+        "User not found."
+      );
+
+    return { targetUser: UserService.toSafeUserType(matchedUser) };
+  })
+  .get("", ({ targetUser }) => {
+    return {
+      success: true,
+      message: "Retrived user successfully.",
+      data: {
+        user: targetUser,
+      },
+    };
+  })
+  .use(privateMessageRoutes);
+
+export const userRoutes = new Elysia({
+  name: "user-routes",
+  prefix: "/user",
+})
+  .use(userModel)
+  .guard({
+    response: "user.all.response.body",
+  })
+  .use(sameUserRoutes)
+  .use(otherUserRoutes);

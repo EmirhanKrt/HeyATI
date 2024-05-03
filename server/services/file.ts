@@ -1,11 +1,8 @@
+import { unlink } from "node:fs/promises";
+import { eq, sql } from "drizzle-orm";
 import db from "@/server/db";
 import { fileTable, privateMessageFileTable } from "@/server/db/schema";
-import {
-  FileInsertPayloadType,
-  FileType,
-  SafeFileType,
-} from "@/server/models/file";
-import { eq } from "drizzle-orm";
+import { FileInsertPayloadType, FileType, SafeFileType } from "@/server/models";
 
 export abstract class FileService {
   static async saveToBucket(file: File): Promise<FileInsertPayloadType> {
@@ -23,6 +20,10 @@ export abstract class FileService {
     };
   }
 
+  static async deleteFromBucket(file: FileType): Promise<void> {
+    return unlink(`./bucket/files/${file.file_path}`);
+  }
+
   static async insertFiles(
     fileDataList: FileInsertPayloadType[]
   ): Promise<FileType[]> {
@@ -38,6 +39,15 @@ export abstract class FileService {
       .where(eq(fileTable.file_id, file_id));
 
     return files[0];
+  }
+
+  static async getFiles(file_idList: number[]): Promise<FileType[]> {
+    const files = await db
+      .select()
+      .from(fileTable)
+      .where(sql`${fileTable.file_id} in (${file_idList.join(", ")})`);
+
+    return files;
   }
 
   static async mapWithPrivateMessage(

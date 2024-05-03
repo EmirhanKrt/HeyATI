@@ -170,19 +170,40 @@ export abstract class PrivateMessageService {
     return deletedMessage[0];
   }
 
+  static async getFilesByMessageId(
+    private_message_id: number
+  ): Promise<FileType[] | null> {
+    const privateMessageFileRow = await db
+      .select()
+      .from(privateMessageFileTable)
+      .where(
+        and(eq(privateMessageFileTable.private_message_id, private_message_id))
+      );
+
+    if (privateMessageFileRow.length > 0) {
+      const fileIdList = privateMessageFileRow.map(
+        (privateMessageFile) => privateMessageFile.file_id
+      );
+
+      return FileService.getFiles(fileIdList);
+    }
+
+    return null;
+  }
+
   static async getFileByMessageId(
     private_message_id: number,
     file_id: number
   ): Promise<FileType | null> {
     const privateMessageFileRow = await db
-      .delete(privateMessageFileTable)
+      .select()
+      .from(privateMessageFileTable)
       .where(
         and(
           eq(privateMessageFileTable.private_message_id, private_message_id),
           eq(privateMessageFileTable.file_id, file_id)
         )
-      )
-      .returning();
+      );
 
     if (privateMessageFileRow.length > 0) {
       return FileService.getFile(file_id);
