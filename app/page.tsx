@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import LogOutButton from "@/components/LogOutButton";
+import FileUploadComponent from "@/components/FileUpload";
 
 const getUser = async () => {
   const cookieStore = cookies();
@@ -24,6 +25,7 @@ const Home = async () => {
   return (
     <main>
       main pages {user.first_name} <LogOutButton />
+      <FileUploadComponent />
     </main>
   );
 };

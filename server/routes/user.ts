@@ -4,13 +4,32 @@ import { userModel } from "@/server/models";
 import { ContextWithUser } from "@/server/types";
 import { UserService } from "@/server/services";
 import { ParamsValidationError } from "@/server/errors";
+import { privateMessageRoutes } from "./privateMessage";
 
 export const userRoutes = new Elysia({
   name: "user-routes",
   prefix: "/user",
 })
   .use(userModel)
-  .get(
+  .guard({
+    response: "user.all.response.body",
+  })
+  .get("/me", async (context) => {
+    const contextWithUser = context as ContextWithUser;
+
+    const matchedUser = await UserService.getUserByUserID(
+      contextWithUser.user.user_id
+    );
+
+    return {
+      success: true,
+      message: "Retrived user succefully.",
+      data: {
+        user: UserService.toSafeUserType(matchedUser!),
+      },
+    };
+  })
+  .put(
     "/me",
     async (context) => {
       const contextWithUser = context as ContextWithUser;
@@ -19,40 +38,49 @@ export const userRoutes = new Elysia({
         contextWithUser.user.user_id
       );
 
+      const updatedUser = await UserService.updateUser(
+        context.body,
+        matchedUser!
+      );
+
       return {
         success: true,
-        message: "Retrived user succefully.",
+        message: "Updated user succefully.",
         data: {
-          user: UserService.toSafeUserType(matchedUser!),
+          user: UserService.toSafeUserType(updatedUser),
         },
       };
     },
     {
-      response: "user.get.me.response.body",
+      body: "user.put.me.request.body",
     }
   )
-  .get(
-    `/:${userTable.user_name.name}`,
-    async ({ params: { user_name } }) => {
-      const matchedUser = await UserService.getUserByUserName(user_name);
-
-      if (!matchedUser) {
-        throw new ParamsValidationError(
-          [{ path: "user_name", message: "Invalid value." }],
-          "User not found."
+  .group(`/:${userTable.user_name.name}`, (app) =>
+    app
+      .guard({
+        params: "user.all.user_name.request.params",
+      })
+      .resolve(async (context) => {
+        const matchedUser = await UserService.getUserByUserName(
+          context.params.user_name
         );
-      }
 
-      return {
-        success: true,
-        message: "Retrived user succefully.",
-        data: {
-          user: UserService.toSafeUserType(matchedUser),
-        },
-      };
-    },
-    {
-      params: "user.get.user_name.request.params",
-      response: "user.get.user_name.response.body",
-    }
+        if (!matchedUser)
+          throw new ParamsValidationError(
+            [{ path: "user_name", message: "Invalid value." }],
+            "User not found."
+          );
+
+        return { receiverUser: UserService.toSafeUserType(matchedUser) };
+      })
+      .get("", ({ receiverUser }) => {
+        return {
+          success: true,
+          message: "Retrived user succefully.",
+          data: {
+            user: receiverUser,
+          },
+        };
+      })
+      .use(privateMessageRoutes)
   );

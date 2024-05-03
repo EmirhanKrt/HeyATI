@@ -10,6 +10,7 @@ import {
   uniqueIndex,
   uuid,
   index,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 const created_at = timestamp("created_at", { mode: "string" })
@@ -165,7 +166,10 @@ export const privateMessageTable = pgTable(
       .notNull()
       .references(() => userTable.user_id),
     replied_message_id: integer("replied_message_id"),
-    is_edited: boolean("is_edited").notNull().default(false),
+    is_edited: boolean("is_edited")
+      .notNull()
+      .default(false)
+      .$onUpdateFn(() => true),
     updated_at,
     created_at,
   },
@@ -188,7 +192,10 @@ export const channelMessageTable = pgTable(
       .notNull()
       .references(() => channelTable.channel_id, { onDelete: "cascade" }),
     replied_message_id: integer("replied_message_id"),
-    is_edited: boolean("is_edited").notNull().default(false),
+    is_edited: boolean("is_edited")
+      .notNull()
+      .default(false)
+      .$onUpdateFn(() => true),
     updated_at,
     created_at,
   },
@@ -224,5 +231,57 @@ export const eventTable = pgTable(
     event_channel_id_index: index("event_channel_id_index").on(
       table.channel_id
     ),
+  })
+);
+
+export const fileTable = pgTable("File", {
+  file_id: serial("file_id").primaryKey().notNull(),
+  file_name: text("file_name").notNull(),
+  file_size: integer("file_size").notNull(),
+  file_type: text("file_type").notNull(),
+  file_path: text("file_path").notNull(),
+  updated_at,
+  created_at,
+});
+
+export const channelMessageFileTable = pgTable(
+  "ChannelMessageFile",
+  {
+    file_id: integer("file_id")
+      .notNull()
+      .references(() => fileTable.file_id, { onDelete: "cascade" }),
+    channel_message_id: integer("channel_message_id").references(
+      () => channelMessageTable.channel_message_id,
+      {
+        onDelete: "cascade",
+      }
+    ),
+  },
+  (table) => ({
+    channel_message_file_table_primary_key: primaryKey({
+      name: "channel_message_file_id",
+      columns: [table.file_id, table.channel_message_id],
+    }),
+  })
+);
+
+export const privateMessageFileTable = pgTable(
+  "PrivateMessageFile",
+  {
+    file_id: integer("file_id")
+      .notNull()
+      .references(() => fileTable.file_id, { onDelete: "cascade" }),
+    private_message_id: integer("private_message_id").references(
+      () => privateMessageTable.private_message_id,
+      {
+        onDelete: "cascade",
+      }
+    ),
+  },
+  (table) => ({
+    private_message_file_table_primary_key: primaryKey({
+      name: "private_message_file_id",
+      columns: [table.file_id, table.private_message_id],
+    }),
   })
 );
