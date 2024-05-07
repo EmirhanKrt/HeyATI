@@ -5,14 +5,12 @@ export const FormHeader = ({
   description,
 }: {
   title: string;
-  description: string;
+  description?: string;
 }) => {
   return (
     <div className={styles.form_header_container}>
       <h3>{title}</h3>
-      <p style={{ color: "rgb(var(--foreground-lighter-color))" }}>
-        {description}
-      </p>
+      {description && <p>{description}</p>}
     </div>
   );
 };

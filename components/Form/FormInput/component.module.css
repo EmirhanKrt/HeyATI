@@ -14,7 +14,7 @@
   width: 100%;
   height: fit-content;
   flex-grow: 0;
-  background-color: rgb(var(--error-background-color));
+  background-color: var(--error-background-color);
 }
 
 .form_input_error_message_container div {

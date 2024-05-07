@@ -1,6 +1,6 @@
-import { eq, or } from "drizzle-orm";
+import { desc, eq, inArray, or, sql } from "drizzle-orm";
 import db from "@/server/db";
-import { userTable } from "@/server/db/schema";
+import { privateMessageTable, userTable } from "@/server/db/schema";
 import {
   JWTPayloadType,
   SafeUserType,
@@ -60,11 +60,11 @@ export abstract class UserService {
     ];
 
     const areAllPasswordFieldsProvided = passwordList.every(
-      (password) => password !== undefined
+      (password) => password !== undefined && password !== ""
     );
 
     const isSomePasswordFieldProvided = passwordList.some(
-      (password) => password !== undefined
+      (password) => password !== undefined && password !== ""
     );
 
     if (areAllPasswordFieldsProvided) {
@@ -197,6 +197,55 @@ export abstract class UserService {
     }
 
     return null;
+  }
+
+  static async getOrderedInteractionWithUsersByUserId(user_id: number) {
+    const interactions = await db
+      .select({
+        interactingUserId: privateMessageTable.sender_id,
+        lastInteraction: sql`MAX(${privateMessageTable.created_at})`.as(
+          "last_interaction"
+        ),
+      })
+      .from(privateMessageTable)
+      .where(eq(privateMessageTable.receiver_id, user_id))
+      .groupBy(privateMessageTable.sender_id)
+      .unionAll(
+        db
+          .select({
+            interactingUserId: privateMessageTable.receiver_id,
+            lastInteraction: sql`MAX(${privateMessageTable.created_at})`.as(
+              "last_interaction"
+            ),
+          })
+          .from(privateMessageTable)
+          .where(eq(privateMessageTable.sender_id, user_id))
+          .groupBy(privateMessageTable.receiver_id)
+      );
+
+    const sortedInteractions = interactions.sort(
+      (a, b) =>
+        new Date(b.lastInteraction as string).getTime() -
+        new Date(a.lastInteraction as string).getTime()
+    );
+
+    const uniqueInteractions = [];
+    const seenUserIds: Record<number, number> = {};
+
+    for (const interaction of sortedInteractions) {
+      if (!seenUserIds[interaction.interactingUserId]) {
+        uniqueInteractions.push(interaction);
+        seenUserIds[interaction.interactingUserId] =
+          interaction.interactingUserId;
+      }
+    }
+
+    const interactedUsers = await db
+      .select()
+      .from(userTable)
+      .where(inArray(userTable.user_id, Object.values(seenUserIds)));
+
+    return interactedUsers;
   }
 
   static toSafeUserType(user: UserType): SafeUserType {

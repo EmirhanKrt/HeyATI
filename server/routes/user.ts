@@ -2,7 +2,7 @@ import Elysia from "elysia";
 import { userTable } from "@/server/db/schema";
 import { userModel } from "@/server/models";
 import { ContextWithUser } from "@/server/types";
-import { UserService } from "@/server/services";
+import { ServerService, UserService } from "@/server/services";
 import { ParamsValidationError } from "@/server/errors";
 import { privateMessageRoutes } from "./privateMessage";
 
@@ -27,11 +27,22 @@ const sameUserRoutes = new Elysia({
     return { targetUser: matchedUser };
   })
   .get("", async ({ targetUser }) => {
+    const serverList = await ServerService.getServerListByUserId(
+      targetUser.user_id
+    );
+
+    const interactedUserList =
+      await UserService.getOrderedInteractionWithUsersByUserId(
+        targetUser.user_id
+      );
+
     return {
       success: true,
       message: "Retrived user successfully.",
       data: {
         user: UserService.toSafeUserType(targetUser),
+        server: serverList.map(ServerService.toSafeServerType),
+        interactedUsers: interactedUserList.map(UserService.toSafeUserType),
       },
     };
   })

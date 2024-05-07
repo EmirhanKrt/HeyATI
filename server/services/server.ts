@@ -69,6 +69,31 @@ export abstract class ServerService {
     return null;
   }
 
+  static async getServerListByUserId(user_id: number) {
+    const serverList = await db
+      .select({
+        server_id: serverTable.server_id,
+        server_name: serverTable.server_name,
+        server_description: serverTable.server_description,
+        owner_id: serverTable.owner_id,
+        updated_at: serverTable.updated_at,
+        created_at: serverTable.created_at,
+      })
+      .from(serverUserTable)
+      .innerJoin(
+        serverTable,
+        eq(serverUserTable.server_id, serverTable.server_id)
+      )
+      .where(
+        and(
+          eq(serverUserTable.user_id, user_id),
+          eq(serverUserTable.is_user_active, true)
+        )
+      );
+
+    return serverList;
+  }
+
   static toSafeServerType(server: ServerType): SafeServerType {
     const { updated_at, ...restOfServer } = server;
 
