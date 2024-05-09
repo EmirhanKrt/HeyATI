@@ -3,6 +3,7 @@ import NavigationPanel from "@/components/NavigationPanel";
 import { AppPanel } from "@/components/AppPanel";
 import { DetailsPanel } from "@/components/DetailsPanel";
 import { AppHeader } from "@/components/AppHeader";
+import UserPrivateMessagePanel from "./UserPrivateMessagePanel";
 
 const UserPrivateMessagePage = ({ params }: { params: { slug: string } }) => {
   return (
@@ -11,7 +12,9 @@ const UserPrivateMessagePage = ({ params }: { params: { slug: string } }) => {
       <section className="panel-container">
         <NavigationPanel type={"user"} activeUserName={params.slug} />
         <AppPanel>
-          <>{params.slug}</>
+          <>
+            <UserPrivateMessagePanel user_name={params.slug} />
+          </>
         </AppPanel>
         <DetailsPanel>
           <></>

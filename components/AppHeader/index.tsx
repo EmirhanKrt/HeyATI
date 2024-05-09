@@ -1,10 +1,23 @@
 import Link from "next/link";
 
-export const AppHeader = ({ pageTitle }: { pageTitle: string }) => {
+export const AppHeader = ({
+  pageTitle,
+}: {
+  pageTitle: "Private Message" | "Dashboard" | "Server";
+}) => {
+  let isHomeButtonActive = false;
+
+  if (pageTitle === "Private Message" || pageTitle === "Dashboard") {
+    isHomeButtonActive = true;
+  }
   return (
     <div className="app-header">
       <div className="app-header-title">
-        <div className="navigation-panel-server-navigation-list-item active">
+        <div
+          className={`navigation-panel-server-navigation-list-item ${
+            isHomeButtonActive ? "active" : ""
+          }`}
+        >
           <Link href={`/`}>
             <svg
               stroke="currentColor"

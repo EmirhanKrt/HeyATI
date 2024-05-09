@@ -1,5 +1,6 @@
 "use client";
 
+import { selectColor } from "@/lib/generateBackgroundColorByUserName";
 import { useAppSelector } from "@/lib/store/hooks";
 import Link from "next/link";
 
@@ -28,7 +29,8 @@ const DashboardSubNavigationPanel = ({
         <span>Private Messages</span>
 
         <ul>
-          {interactedUserList.map((user) => {
+          {interactedUserList.order.map((userName) => {
+            const user = interactedUserList.users[userName];
             const isActive = activeUserName === user.user_name;
 
             const liAttributes = {
@@ -38,13 +40,18 @@ const DashboardSubNavigationPanel = ({
             return (
               <li key={user.user_id} {...liAttributes}>
                 <Link href={`/user/${user.user_name}`}>
-                  <span>
+                  <span
+                    style={{ backgroundColor: selectColor(user.user_name) }}
+                  >
                     {user.first_name[0]}
                     {user.last_name[0]}
                   </span>
                   <div>
                     <span
-                      style={{ color: "var(--text-color)", fontSize: "12px" }}
+                      style={{
+                        color: "var(--text-color)",
+                        fontSize: "12px",
+                      }}
                     >
                       @{user.user_name}
                     </span>

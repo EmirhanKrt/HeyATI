@@ -6,6 +6,7 @@ import { useAppSelector } from "@/lib/store/hooks";
 import PopUp from "@/components/PopUp";
 import UserMeUpdateForm from "./UserMeUpdateForm";
 import LogOutButton from "@/components/LogOutButton";
+import { selectColor } from "@/lib/generateBackgroundColorByUserName";
 
 const UserAvatar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,13 +25,19 @@ const UserAvatar = () => {
       }}
     >
       <button
+        style={{ backgroundColor: selectColor(user.user_name) }}
         className="navigation-panel-server-navigation-list-item"
         onClick={() => setIsOpen(true)}
       >
         {userFirstNameAndLastNameFirstCharacterMerged}
       </button>
 
-      <PopUp title="User Settings" openState={isOpen} setOpenState={setIsOpen}>
+      <PopUp
+        type="content"
+        title="User Settings"
+        openState={isOpen}
+        setOpenState={setIsOpen}
+      >
         <UserMeUpdateForm />
         <div
           style={{

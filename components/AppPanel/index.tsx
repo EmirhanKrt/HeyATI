@@ -3,5 +3,5 @@ export const AppPanel = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  return <div className="app-panel">{children}</div>;
+  return <div className="panel app-panel">{children}</div>;
 };

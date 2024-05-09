@@ -1,5 +1,4 @@
 import { ChangeEventHandler } from "react";
-import styles from "./component.module.css";
 
 type FormInputPropsType =
   | {
@@ -22,7 +21,7 @@ type FormInputPropsType =
 
 export const FormInput = (props: FormInputPropsType) => {
   const formInputContainerProps = {
-    className: styles.form_input_container,
+    className: "form_input_container",
   };
 
   const formInputProps: {
@@ -63,7 +62,7 @@ export const FormInput = (props: FormInputPropsType) => {
     formInputContainerProps.className += " error-text";
     formInputProps.className += "error";
     errorMessageComponent = (
-      <div className={styles.form_input_error_message_container}>
+      <div className={"form_input_error_message_container"}>
         <div>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -80,7 +79,7 @@ export const FormInput = (props: FormInputPropsType) => {
 
   return (
     <div {...formInputContainerProps}>
-      <label className={styles.form_input_label} htmlFor={props.id}>
+      <label className={"form_input_label"} htmlFor={props.id}>
         {props.title}
       </label>
       <input {...formInputProps} />

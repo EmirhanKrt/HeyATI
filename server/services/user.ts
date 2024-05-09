@@ -200,7 +200,7 @@ export abstract class UserService {
   }
 
   static async getOrderedInteractionWithUsersByUserId(user_id: number) {
-    const interactions = await db
+    const interactions = (await db
       .select({
         interactingUserId: privateMessageTable.sender_id,
         lastInteraction: sql`MAX(${privateMessageTable.created_at})`.as(
@@ -221,29 +221,59 @@ export abstract class UserService {
           .from(privateMessageTable)
           .where(eq(privateMessageTable.sender_id, user_id))
           .groupBy(privateMessageTable.receiver_id)
-      );
+      )) as {
+      interactingUserId: number;
+      lastInteraction: string;
+    }[];
 
-    const sortedInteractions = interactions.sort(
-      (a, b) =>
-        new Date(b.lastInteraction as string).getTime() -
-        new Date(a.lastInteraction as string).getTime()
+    interactions.sort((a, b) =>
+      b.lastInteraction.localeCompare(a.lastInteraction)
     );
 
-    const uniqueInteractions = [];
-    const seenUserIds: Record<number, number> = {};
+    const latestInteractions = new Map<
+      number,
+      {
+        interactingUserId: number;
+        lastInteraction: string;
+      }
+    >();
 
-    for (const interaction of sortedInteractions) {
-      if (!seenUserIds[interaction.interactingUserId]) {
-        uniqueInteractions.push(interaction);
-        seenUserIds[interaction.interactingUserId] =
-          interaction.interactingUserId;
+    for (const interaction of interactions) {
+      if (
+        !latestInteractions.has(interaction.interactingUserId) ||
+        latestInteractions.get(interaction.interactingUserId)!.lastInteraction <
+          interaction.lastInteraction
+      ) {
+        latestInteractions.set(interaction.interactingUserId, interaction);
       }
     }
+
+    const distinctLatestInteractions = Array.from(latestInteractions.values());
+
+    const distinctLatestInteractedUserIdList = distinctLatestInteractions.map(
+      (interaction) => interaction.interactingUserId
+    );
+
+    if (distinctLatestInteractedUserIdList.length === 0)
+      return [] as UserType[];
 
     const interactedUsers = await db
       .select()
       .from(userTable)
-      .where(inArray(userTable.user_id, Object.values(seenUserIds)));
+      .where(inArray(userTable.user_id, distinctLatestInteractedUserIdList));
+
+    const userIdOrder = new Map<number, number>(
+      distinctLatestInteractions.map((interaction, index) => [
+        interaction.interactingUserId,
+        index,
+      ])
+    );
+
+    interactedUsers.sort((a, b) => {
+      const orderA = userIdOrder.get(a.user_id) || 0;
+      const orderB = userIdOrder.get(b.user_id) || 0;
+      return orderA - orderB;
+    });
 
     return interactedUsers;
   }

@@ -13,13 +13,14 @@ import {
 import { ContextWithUser } from "@/server/types";
 import { FileService, PrivateMessageService } from "@/server/services";
 import { ParamsValidationError } from "@/server/errors";
+import WebSocketManager from "../websocket-data";
 
 type ContextWithSenderAndTargetUser = ContextWithUser & {
   targetUser: SafeUserType;
 };
 
 type ContextWithMessage = ContextWithSenderAndTargetUser & {
-  message: PrivateMessageType;
+  message: PrivateMessageType & { files: SafeFileType[] };
 };
 
 type ContextWithFile = ContextWithMessage & {
@@ -141,8 +142,10 @@ const crudPrivateMessageRoutes = new Elysia({
         { replied_message_id, private_message_content }
       );
 
-      const responseMessageData: PrivateMessageSuccessResponseBodyDataType =
-        message;
+      const responseMessageData: PrivateMessageSuccessResponseBodyDataType = {
+        ...message,
+        files: [],
+      };
 
       if (insertedFileList.length) {
         const messageFileList = insertedFileList.map((insertedFile) => ({
@@ -153,6 +156,24 @@ const crudPrivateMessageRoutes = new Elysia({
         await FileService.mapWithPrivateMessage(messageFileList);
 
         responseMessageData.files = insertedFileList;
+      }
+
+      const wsManager = WebSocketManager.getInstance();
+
+      const websocket = wsManager.getConnectedUserWebSocket(
+        targetUser.user_name
+      );
+
+      if (websocket) {
+        websocket.send(
+          JSON.stringify({
+            type: "post_private_message",
+            data: {
+              sender_user_name: senderUser.user_name,
+              message: responseMessageData,
+            },
+          })
+        );
       }
 
       return {
@@ -207,6 +228,7 @@ const crudPrivateMessageRoutes = new Elysia({
       },
     };
   })
+  .use(privateMessageFileRoutes)
   .onBeforeHandle(async (context) => {
     const { user: senderUser, message } = context as ContextWithMessage;
 
@@ -220,18 +242,45 @@ const crudPrivateMessageRoutes = new Elysia({
   .put(
     `/:${privateMessageTable.private_message_id.name}`,
     async (context) => {
-      const { message } = context as ContextWithMessage;
+      const { message, targetUser, user } = context as ContextWithMessage;
+
+      const fileList = await PrivateMessageService.getFilesByMessageId(
+        message.private_message_id
+      );
 
       const updatedMessage = await PrivateMessageService.updateMessage(
         message.private_message_id,
         context.body.private_message_content
       );
 
+      const responseMessageData = {
+        ...updatedMessage,
+        files: fileList ? fileList.map(FileService.toSafeFileType) : [],
+      };
+
+      const wsManager = WebSocketManager.getInstance();
+
+      const websocket = wsManager.getConnectedUserWebSocket(
+        targetUser.user_name
+      );
+
+      if (websocket) {
+        websocket.send(
+          JSON.stringify({
+            type: "update_private_message",
+            data: {
+              sender_user_name: user.user_name,
+              message: responseMessageData,
+            },
+          })
+        );
+      }
+
       return {
         success: true,
         message: "Message updated successfully.",
         data: {
-          message: updatedMessage,
+          message: responseMessageData,
         },
       };
     },
@@ -242,7 +291,7 @@ const crudPrivateMessageRoutes = new Elysia({
   .delete(
     `/:${privateMessageTable.private_message_id.name}`,
     async (context) => {
-      const { message } = context as ContextWithMessage;
+      const { message, user, targetUser } = context as ContextWithMessage;
 
       const fileList = await PrivateMessageService.getFilesByMessageId(
         message.private_message_id
@@ -258,16 +307,38 @@ const crudPrivateMessageRoutes = new Elysia({
         }
       }
 
+      const responseMessageData = {
+        ...deletedMessage,
+        files: fileList ? fileList.map(FileService.toSafeFileType) : [],
+      };
+
+      const wsManager = WebSocketManager.getInstance();
+
+      const websocket = wsManager.getConnectedUserWebSocket(
+        targetUser.user_name
+      );
+
+      if (websocket) {
+        websocket.send(
+          JSON.stringify({
+            type: "delete_private_message",
+            data: {
+              sender_user_name: user.user_name,
+              message: responseMessageData,
+            },
+          })
+        );
+      }
+
       return {
         success: true,
         message: "Message deleted successfully.",
         data: {
-          message: deletedMessage,
+          message: responseMessageData,
         },
       };
     }
-  )
-  .use(privateMessageFileRoutes);
+  );
 
 export const privateMessageRoutes = new Elysia({
   name: "private-message-routes",

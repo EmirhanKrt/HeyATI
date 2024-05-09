@@ -37,7 +37,7 @@ const privateMessageWithFile = t.Object({
 
 const privateMessageSuccessResponseBodyDataSchema = t.Object({
   ...privateMessageSelectSchema.properties,
-  files: t.Optional(t.Array(fileSelectSchemaWithoutSensitiveData)),
+  files: t.Array(fileSelectSchemaWithoutSensitiveData),
 });
 
 const privateMessageIdRequestParamsSchema = t.Object({
@@ -66,6 +66,10 @@ export type PrivateMessageInsertPayloadType = Static<
 export type PrivateMessageSuccessResponseBodyDataType = Static<
   typeof privateMessageSuccessResponseBodyDataSchema
 >;
+
+export type MessagesGroupedByDateType = {
+  [key: string]: PrivateMessageSuccessResponseBodyDataType[];
+};
 
 export const privateMessageModel = new Elysia().model({
   "private_message.index.get.response.body":

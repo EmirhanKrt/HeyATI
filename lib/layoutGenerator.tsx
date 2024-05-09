@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import StoreProvider from "./store/StoreProvider";
 
 import "@/app/globals.css";
+import WebsocketConnection from "@/components/WebsocketConnection";
 
 const archivio = Archivo({ subsets: ["latin"] });
 
@@ -46,6 +47,7 @@ const createLayout = ({ type }: LayoutOptions) => {
             server={fetchUserRequest.data.data.server}
             interactedUsers={fetchUserRequest.data.data.interactedUsers}
           >
+            <WebsocketConnection />
             <main>{children}</main>
           </StoreProvider>
         );

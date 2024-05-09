@@ -1,5 +1,5 @@
 import { unlink } from "node:fs/promises";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import db from "@/server/db";
 import { fileTable, privateMessageFileTable } from "@/server/db/schema";
 import { FileInsertPayloadType, FileType, SafeFileType } from "@/server/models";
@@ -45,7 +45,7 @@ export abstract class FileService {
     const files = await db
       .select()
       .from(fileTable)
-      .where(sql`${fileTable.file_id} in (${file_idList.join(", ")})`);
+      .where(inArray(fileTable.file_id, file_idList));
 
     return files;
   }
