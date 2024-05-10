@@ -3,29 +3,39 @@
     "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
     "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
 
-  --foreground-color: 21, 21, 24;
-  --foreground-lighter-color: 85, 85, 101;
-  --background-color: 255, 255, 255;
-  --primary-color: 36, 165, 120;
-  --primary-color-hover: 22, 133, 97;
-  --primary-color-active: 9, 82, 60;
-  --secondary-background-color: 247, 247, 248;
+  --title-color: #fff;
+  --text-color: #cacaca;
+  --background-color: #181818;
+  --secondary-background-color: #1c1c1c;
+  --light-background-color: #333;
 
-  --button-border-color: 229, 229, 229;
-  --button-background-color: 255, 255, 255;
+  --primary-color: #ff783a;
+  --primary-color-hovered: #e66932;
+  --primary-color-active: #cc5b2c;
 
-  --button-hover-border-color: 180, 180, 183;
-  --button-hover-background-color: 240, 240, 240;
+  --button-border-color: rgba(132, 132, 132, 0.2);
+  --button-hovered-border-color: rgba(132, 132, 132, 0.3);
+  --button-active-border-color: rgba(132, 132, 132, 0.4);
 
-  --button-active-border-color: 143, 143, 160;
-  --button-active-background-color: 229, 229, 229;
+  --button-background-color: #151515;
+  --button-hovered-background-color: #1c1c1c;
+  --button-active-background-color: #202020;
 
-  --error-color: 209, 26, 70;
-  --error-background-color: 255, 220, 228;
-  --error-input-active-background-color: 255, 241, 245;
+  --input-border-color: rgba(132, 132, 132, 0.2);
+  --input-hovered-border-color: rgba(132, 132, 132, 0.3);
+  --input-active-border-color: rgba(132, 132, 132, 0.4);
 
-  --success-color: 9, 82, 60;
-  --success-background-color: 218, 249, 240;
+  --input-placeholder-color: #4f4f4f;
+
+  --input-background-color: #202020;
+  --input-hovered-background-color: #232323;
+  --input-active-background-color: #252525;
+
+  --error-background-color: #ee596f;
+
+  --success-background-color: #4d9541;
+
+  --header-height: 61px;
 }
 
 * {
@@ -44,8 +54,8 @@ body {
   font-weight: 400;
   line-height: 24px;
   font-size: 16px;
-  color: rgb(var(--foreground-color));
-  background: rgb(var(--secondary-background-color));
+  color: var(--text-color);
+  background: var(--background-color);
 }
 
 input,
@@ -64,45 +74,39 @@ span {
 button {
   height: fit-content;
   width: 100%;
-  padding: 6px 16px;
+  padding: 6px 10px;
   cursor: pointer;
   outline: none;
-  border: 1px solid rgb(var(--button-border-color));
-  color: inherit;
-  background-color: rgb(var(--button-background-color));
-  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px,
-    rgba(255, 255, 255, 0.1) 0px 2px 0px 0px inset;
+  border: 2px solid var(--button-border-color);
+  color: var(--title-color);
+  background-color: var(--button-background-color);
   transition: 0.3s ease-in-out;
   border-radius: 7px;
 }
 
-button.primary {
-  color: white;
-  box-shadow: rgba(0, 0, 0, 0.08) 0px 2px 2px 0px,
-    rgba(0, 0, 0, 0.08) 0px -2px 0px 0px inset,
-    rgba(255, 255, 255, 0.1) 0px 2px 0px 0px inset;
-  border: 1px solid rgb(var(--primary-color));
-  background-color: rgb(var(--primary-color));
-}
-
 button:hover {
-  background-color: rgb(var(--button-hover-background-color));
-  border-color: rgb(var(--button-hover-border-color));
-}
-
-button.primary:hover {
-  background-color: rgb(var(--primary-color-hover));
-  border-color: rgb(var(--primary-color-hover));
+  background-color: var(--button-hovered-background-color);
+  border-color: var(--button-hovered-border-color);
 }
 
 button:active {
-  background-color: rgb(var(--button-active-background-color));
-  border-color: rgb(var(--button-active-border-color));
+  background-color: var(--button-active-background-color);
+  border-color: var(--button-active-border-color);
+}
+
+button.primary {
+  border-color: transparent;
+  background-color: var(--primary-color);
+}
+
+button.primary:hover {
+  border-color: transparent;
+  background-color: var(--primary-color-hovered);
 }
 
 button.primary:active {
-  background-color: rgb(var(--primary-color-active));
-  border-color: rgb(var(--primary-color-active));
+  border-color: transparent;
+  background-color: var(--primary-color-active);
 }
 
 input {
@@ -111,28 +115,30 @@ input {
   padding: 6px 16px;
   cursor: text;
   outline: none;
-  border: 1px solid rgb(var(--button-border-color));
+  border: 1px solid var(--input-border-color);
   color: inherit;
-  background-color: rgb(var(--button-background-color));
-  transition: 0.3s ease-in-out;
-  box-shadow: rgba(0, 0, 0, 0.04) 0px 1px 1px 0px;
+  background-color: var(--input-background-color);
+  transition: 0.2s ease-in;
 }
 
-input:hover {
-  border: 1px solid rgb(var(--button-hover-border-color));
+input:not(:disabled):hover,
+input:not(:disabled)focus {
+  border-color: var(--input-hovered-border-color);
+  background-color: var(--input-hovered-background-color);
 }
 
-input:active {
-  border: 1px solid rgb(var(--button-hover-border-color));
-  background-color: rgb(var(--button-hover-background-color));
+input:not(:disabled):active {
+  border-color: var(--input-active-border-color);
+  background-color: var(--input-active-background-color);
+}
+
+input:disabled {
+  background-color: var(--button-background-color);
+  cursor: not-allowed;
 }
 
 input.error {
-  border-color: rgb(var(--error-color)) !important;
-}
-
-input.error:active {
-  background-color: rgb(var(--error-input-active-background-color)) !important;
+  border-color: var(--error-background-color) !important;
 }
 
 h1 {
@@ -156,6 +162,17 @@ h1,
 h2,
 h3,
 h4,
+h5,
+label,
+input,
+a {
+  color: var(--title-color);
+}
+
+h1,
+h2,
+h3,
+h4,
 label,
 span {
   line-height: 1.25;
@@ -163,22 +180,25 @@ span {
 }
 
 a {
-  color: inherit;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .error-text {
-  color: rgb(var(--error-color));
+  color: var(--title-color);
 }
 
 .success-text {
-  color: rgb(var(--success-color));
+  color: var(--title-color);
 }
 
 .error-background {
-  background-color: rgb(var(--error-background-color));
+  background-color: var(--error-background-color);
 }
 
 .success-background {
-  background-color: rgb(var(--success-background-color));
+  background-color: var(--success-background-color);
+}
+
+::placeholder {
+  color: var(--input-placeholder-color);
 }

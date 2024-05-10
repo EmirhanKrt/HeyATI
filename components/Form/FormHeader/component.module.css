@@ -1,8 +1,0 @@
-.form_header_container {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  gap: 10px;
-  justify-content: center;
-}

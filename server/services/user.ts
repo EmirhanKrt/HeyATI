@@ -1,6 +1,6 @@
-import { eq, or } from "drizzle-orm";
+import { desc, eq, inArray, or, sql } from "drizzle-orm";
 import db from "@/server/db";
-import { userTable } from "@/server/db/schema";
+import { privateMessageTable, userTable } from "@/server/db/schema";
 import {
   JWTPayloadType,
   SafeUserType,
@@ -60,11 +60,11 @@ export abstract class UserService {
     ];
 
     const areAllPasswordFieldsProvided = passwordList.every(
-      (password) => password !== undefined
+      (password) => password !== undefined && password !== ""
     );
 
     const isSomePasswordFieldProvided = passwordList.some(
-      (password) => password !== undefined
+      (password) => password !== undefined && password !== ""
     );
 
     if (areAllPasswordFieldsProvided) {
@@ -197,6 +197,85 @@ export abstract class UserService {
     }
 
     return null;
+  }
+
+  static async getOrderedInteractionWithUsersByUserId(user_id: number) {
+    const interactions = (await db
+      .select({
+        interactingUserId: privateMessageTable.sender_id,
+        lastInteraction: sql`MAX(${privateMessageTable.created_at})`.as(
+          "last_interaction"
+        ),
+      })
+      .from(privateMessageTable)
+      .where(eq(privateMessageTable.receiver_id, user_id))
+      .groupBy(privateMessageTable.sender_id)
+      .unionAll(
+        db
+          .select({
+            interactingUserId: privateMessageTable.receiver_id,
+            lastInteraction: sql`MAX(${privateMessageTable.created_at})`.as(
+              "last_interaction"
+            ),
+          })
+          .from(privateMessageTable)
+          .where(eq(privateMessageTable.sender_id, user_id))
+          .groupBy(privateMessageTable.receiver_id)
+      )) as {
+      interactingUserId: number;
+      lastInteraction: string;
+    }[];
+
+    interactions.sort((a, b) =>
+      b.lastInteraction.localeCompare(a.lastInteraction)
+    );
+
+    const latestInteractions = new Map<
+      number,
+      {
+        interactingUserId: number;
+        lastInteraction: string;
+      }
+    >();
+
+    for (const interaction of interactions) {
+      if (
+        !latestInteractions.has(interaction.interactingUserId) ||
+        latestInteractions.get(interaction.interactingUserId)!.lastInteraction <
+          interaction.lastInteraction
+      ) {
+        latestInteractions.set(interaction.interactingUserId, interaction);
+      }
+    }
+
+    const distinctLatestInteractions = Array.from(latestInteractions.values());
+
+    const distinctLatestInteractedUserIdList = distinctLatestInteractions.map(
+      (interaction) => interaction.interactingUserId
+    );
+
+    if (distinctLatestInteractedUserIdList.length === 0)
+      return [] as UserType[];
+
+    const interactedUsers = await db
+      .select()
+      .from(userTable)
+      .where(inArray(userTable.user_id, distinctLatestInteractedUserIdList));
+
+    const userIdOrder = new Map<number, number>(
+      distinctLatestInteractions.map((interaction, index) => [
+        interaction.interactingUserId,
+        index,
+      ])
+    );
+
+    interactedUsers.sort((a, b) => {
+      const orderA = userIdOrder.get(a.user_id) || 0;
+      const orderB = userIdOrder.get(b.user_id) || 0;
+      return orderA - orderB;
+    });
+
+    return interactedUsers;
   }
 
   static toSafeUserType(user: UserType): SafeUserType {

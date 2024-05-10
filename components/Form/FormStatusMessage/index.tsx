@@ -1,5 +1,3 @@
-import styles from "./component.module.css";
-
 export const FormStatusMessage = ({
   status,
   message,
@@ -10,7 +8,7 @@ export const FormStatusMessage = ({
   if (status === null) return;
 
   const formInputContainerProps = {
-    className: `${styles.form_status_message_container} ${
+    className: `${"form_status_message_container"} ${
       status ? "success-background success-text" : "error-background error-text"
     }`,
   };

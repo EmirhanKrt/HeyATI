@@ -1,32 +1,11 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { api } from "@/lib/api";
+import type { Metadata } from "next";
+import createLayout from "@/lib/layoutGenerator";
 
-import styles from "./page.module.css";
-
-const getUser = async () => {
-  const cookieStore = cookies();
-  const token = cookieStore.get("token");
-
-  if (token) {
-    const fetchUserRequest = await api.user.me.get({
-      headers: { cookie: "token=" + token.value },
-    });
-
-    if (!fetchUserRequest.error) {
-      redirect("/");
-    }
-  }
+export const metadata: Metadata = {
+  title: "Hey ATI - Auth",
+  description: "Hey ATI Application",
 };
 
-const AuthLayout = async ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) => {
-  await getUser();
-
-  return <main className={styles.main}>{children}</main>;
-};
+const AuthLayout = createLayout({ type: "Auth" });
 
 export default AuthLayout;

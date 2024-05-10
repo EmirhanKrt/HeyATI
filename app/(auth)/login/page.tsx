@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEventHandler, FormEvent, useState } from "react";
 
+import styles from "../page.module.css";
+
 type ErrorMessageObjectType = {
   user_email: string | null;
   user_password: string | null;
@@ -90,43 +92,45 @@ const LoginPage = () => {
   };
 
   return (
-    <Form onSubmit={handleSubmit}>
-      <Form.Header
-        title="Good to see you 👋"
-        description="Please enter your information below in order to start the process."
-      />
-      <Form.StatusMessage status={status} message={statusMessage} />
-      <Form.Body>
-        <Form.Input
-          title="Email"
-          type="email"
-          id="user_email"
-          name="user_email"
-          placeholder="Enter your email"
-          value={user_email}
-          onChange={user_email_change}
-          errorMessage={errorMessage.user_email}
+    <main className={styles.main}>
+      <Form onSubmit={handleSubmit}>
+        <Form.Header
+          title="Good to see you 👋"
+          description="Please enter your information below in order to start the process."
         />
-        <Form.Input
-          title="Password"
-          type="password"
-          id="user_password"
-          name="user_password"
-          placeholder="Password"
-          value={user_password}
-          onChange={user_password_change}
-          errorMessage={errorMessage.user_password}
-        />
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button className="primary" type="submit" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
-          </button>
-          <Link href={"/register"}>
-            <button>I don&apos;t have an account</button>
-          </Link>
-        </div>
-      </Form.Body>
-    </Form>
+        <Form.StatusMessage status={status} message={statusMessage} />
+        <Form.Body>
+          <Form.Input
+            title="Email"
+            type="email"
+            id="user_email"
+            name="user_email"
+            placeholder="Enter your email"
+            value={user_email}
+            onChange={user_email_change}
+            errorMessage={errorMessage.user_email}
+          />
+          <Form.Input
+            title="Password"
+            type="password"
+            id="user_password"
+            name="user_password"
+            placeholder="Password"
+            value={user_password}
+            onChange={user_password_change}
+            errorMessage={errorMessage.user_password}
+          />
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button className="primary" type="submit" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
+            </button>
+            <Link href={"/register"}>
+              <button>I don&apos;t have an account</button>
+            </Link>
+          </div>
+        </Form.Body>
+      </Form>
+    </main>
   );
 };
 

@@ -10,9 +10,10 @@ import {
   PrivateMessageInsertPayloadType,
   PrivateMessageSuccessResponseBodyDataType,
   PrivateMessageType,
+  SafeFileType,
   SafeUserType,
 } from "@/server/models";
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import { FileService } from "./file";
 
 export abstract class PrivateMessageService {
@@ -141,7 +142,14 @@ export abstract class PrivateMessageService {
           )
         )
       )
-      .groupBy(privateMessageTable.private_message_id);
+      .groupBy(privateMessageTable.private_message_id)
+      .orderBy(desc(privateMessageTable.created_at));
+
+    for (const message of messageList) {
+      message.files = (message.files as SafeFileType[]).filter(
+        (messageFile) => messageFile.file_id
+      );
+    }
 
     return messageList as PrivateMessageSuccessResponseBodyDataType[];
   }

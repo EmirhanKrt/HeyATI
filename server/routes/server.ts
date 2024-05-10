@@ -12,7 +12,7 @@ export const serverRoutes = new Elysia({
 })
   .use(serverModel)
   .post(
-    "/",
+    "",
     async (context) => {
       const contextWithUser = context as ContextWithUser;
 
