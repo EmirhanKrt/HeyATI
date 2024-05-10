@@ -68,3 +68,16 @@ export type PermissionKeys =
 export type PermissionObjectType = {
   [key in PermissionKeys]: AccessType;
 };
+
+export type ServerDataType = {
+  server_id: number;
+  user_name_list: string[];
+  channel_list: {
+    channel_id: number;
+    event_list: {
+      event_id: number;
+    }[];
+  }[];
+};
+
+export type ServerDataListType = ServerDataType[];

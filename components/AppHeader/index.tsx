@@ -18,7 +18,14 @@ export const AppHeader = ({
             isHomeButtonActive ? "active" : ""
           }`}
         >
-          <Link href={`/`}>
+          <Link
+            href={`/`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <svg
               stroke="currentColor"
               fill="currentColor"

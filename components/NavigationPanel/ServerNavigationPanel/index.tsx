@@ -7,6 +7,30 @@ import { useAppSelector } from "@/lib/store/hooks";
 import PopUp from "@/components/PopUp";
 import CreateServerForm from "./CreateServerForm";
 
+const abbreviate = (server_name: string) => {
+  if (server_name.length <= 5) {
+    return server_name;
+  }
+
+  const words = server_name.split(" ");
+
+  if (words.length === 1) {
+    return server_name.substring(0, 5);
+  }
+
+  let abbreviation = words.map((word) => word[0]).join("");
+
+  if (abbreviation.length < 5 && words[0].length >= 5) {
+    abbreviation += words[0].substring(1, 5 - abbreviation.length + 1);
+  }
+
+  if (abbreviation.length > 5) {
+    abbreviation = abbreviation.substring(0, 5);
+  }
+
+  return abbreviation;
+};
+
 const ServerNavigationPanel = ({
   activeServerId,
 }: {
@@ -86,12 +110,7 @@ const ServerNavigationPanel = ({
             }`,
           };
 
-          const serverShortName = server.server_name
-            .split(" ")
-            .map((splittedServerName) =>
-              splittedServerName.at(0)?.toUpperCase()
-            )
-            .join("");
+          const serverShortName = abbreviate(server.server_name);
 
           return (
             <li key={server.server_id} {...props}>

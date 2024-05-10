@@ -17,10 +17,14 @@ const DashboardSubNavigationPanel = ({
     <section className="navigation-subpanel-container">
       <nav
         className="navigation-panel-navigation"
-        style={{ paddingTop: "10px" }}
+        style={{ paddingTop: "8px" }}
       >
         <ul className="navigation-panel-subpanel-navigation-list">
-          <li className="navigation-panel-subpanel-navigation-list-item active">
+          <li
+            className={`navigation-panel-subpanel-navigation-list-item ${
+              !activeUserName && "active"
+            }`}
+          >
             <span>Calendar</span>
           </li>
         </ul>

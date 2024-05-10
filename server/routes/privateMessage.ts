@@ -158,11 +158,9 @@ const crudPrivateMessageRoutes = new Elysia({
         responseMessageData.files = insertedFileList;
       }
 
-      const wsManager = WebSocketManager.getInstance();
+      const wsManager = await WebSocketManager.getInstance();
 
-      const websocket = wsManager.getConnectedUserWebSocket(
-        targetUser.user_name
-      );
+      const websocket = wsManager.getUserWebSocket(targetUser.user_name);
 
       if (websocket) {
         websocket.send(
@@ -258,11 +256,9 @@ const crudPrivateMessageRoutes = new Elysia({
         files: fileList ? fileList.map(FileService.toSafeFileType) : [],
       };
 
-      const wsManager = WebSocketManager.getInstance();
+      const wsManager = await WebSocketManager.getInstance();
 
-      const websocket = wsManager.getConnectedUserWebSocket(
-        targetUser.user_name
-      );
+      const websocket = wsManager.getUserWebSocket(targetUser.user_name);
 
       if (websocket) {
         websocket.send(
@@ -312,11 +308,9 @@ const crudPrivateMessageRoutes = new Elysia({
         files: fileList ? fileList.map(FileService.toSafeFileType) : [],
       };
 
-      const wsManager = WebSocketManager.getInstance();
+      const wsManager = await WebSocketManager.getInstance();
 
-      const websocket = wsManager.getConnectedUserWebSocket(
-        targetUser.user_name
-      );
+      const websocket = wsManager.getUserWebSocket(targetUser.user_name);
 
       if (websocket) {
         websocket.send(

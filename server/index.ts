@@ -4,12 +4,36 @@ import * as plugins from "@/server/plugins";
 import * as routes from "@/server/routes";
 
 import WebSocketManager from "./websocket-data";
-import { bootstrapWebsocketServer } from "./websocket-server-index";
 
-const wsManager = WebSocketManager.getInstance();
+new Elysia({ name: "websocket-server" })
+  .use(plugins.jwtPlugin)
+  .use(plugins.authPlugin)
+  .ws("/ws", {
+    open: async (ws) => {
+      const currentUser = ws.data.user;
+
+      console.log("Socket Opened", currentUser.user_name);
+      const wsManager = await WebSocketManager.getInstance();
+
+      wsManager.addUserWebSocket(currentUser.user_name as string, ws.raw);
+
+      return;
+    },
+    message: (ws, message) => {},
+    close: async (ws) => {
+      const currentUser = ws.data.user;
+
+      console.log("Socket Closed", currentUser.user_name);
+      const wsManager = await WebSocketManager.getInstance();
+
+      wsManager.removeUserWebSocket(currentUser.user_name as string);
+
+      return;
+    },
+  })
+  .listen(3001);
 
 const app = new Elysia({ prefix: "/api" })
-  .get("/", () => wsManager.getAllConnectedUsers())
   .use(plugins.docsPlugin)
   .use(plugins.corsPlugin)
   .use(plugins.errorPlugin)
@@ -18,8 +42,6 @@ const app = new Elysia({ prefix: "/api" })
   .use(plugins.authPlugin)
   .use(routes.protectedRoutes)
   .compile();
-
-bootstrapWebsocketServer();
 
 export const GET = app.handle;
 export const POST = app.handle;
