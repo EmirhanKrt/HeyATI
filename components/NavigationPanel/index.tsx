@@ -7,7 +7,7 @@ type DashboardPropType = {
 
 type UserPrivateMessagePropType = {
   type: "user";
-  activeUserName: string;
+  active_user_name: string;
 };
 
 type ServerPropType = {
@@ -35,7 +35,7 @@ const NavigationPanel = (props: PropType) => {
           <>
             <ServerNavigationPanel />
             <DashboardSubNavigationPanel
-              activeUserName={props.activeUserName}
+              active_user_name={props.active_user_name}
             />
           </>
         );

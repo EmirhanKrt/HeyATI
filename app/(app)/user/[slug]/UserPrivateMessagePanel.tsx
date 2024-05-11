@@ -11,7 +11,6 @@ import {
 } from "react";
 import { Chat } from "@/components/Chat";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import useUserDetails from "@/lib/hooks/useUserDetails";
 import {
   PrivateMessageSuccessResponseBodyDataType,
   PrivateMessageType,
@@ -24,9 +23,11 @@ import PopUp from "@/components/PopUp";
 import { api, getBaseUrl } from "@/lib/api";
 import {
   deleteMessage,
+  InteractedUserWithPrivateMessagesType,
   updateMessage,
 } from "@/lib/store/features/interactedUsers/interactedUsersSlice";
 import Form from "@/components/Form";
+import { LoadingCircle } from "@/components/LoadingCircle";
 
 const MessageHeader = ({
   shouldRenderPhoto,
@@ -333,11 +334,7 @@ const MessageDateGroup = ({
         lastRenderedSenderId = message.sender_id;
 
         return (
-          <div
-            key={index}
-            className="message-content-and-file-container"
-            style={{ marginTop: shouldRenderPhoto ? "12px" : "0" }}
-          >
+          <div key={index} className="message-content-and-file-container">
             <div className="message-container">
               <MessageHeader
                 shouldRenderPhoto={shouldRenderPhoto}
@@ -416,47 +413,81 @@ const MessageDateGroup = ({
   );
 };
 
-const UserPrivateMessagePanel = ({ user_name }: { user_name: string }) => {
-  useUserDetails(user_name);
-  const targetUser = useAppSelector(
-    (state) => state.interactedUsers.users[user_name]
-  );
+const UserPrivateMessagePanel = ({
+  isUserFound,
+  isLoading,
+  targetUser,
+}: {
+  isUserFound: boolean;
+  isLoading: boolean;
+  targetUser: InteractedUserWithPrivateMessagesType;
+}) => {
+  const [isMessageFound, setIsMessageFound] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (containerRef.current) {
-      const innerContainer = containerRef.current.querySelector(
-        "div.chat-message-grouped-date-container"
-      ) as HTMLDivElement;
-
-      if (innerContainer) {
-        containerRef.current.scrollTop = innerContainer.scrollHeight;
+    if (targetUser) {
+      if (targetUser.messages) {
+        if (Object.keys(targetUser.messages).length > 0)
+          setIsMessageFound(true);
+      } else {
+        setIsMessageFound(false);
       }
     }
-  }, [targetUser.messages]);
+  }, [targetUser]);
+
+  useEffect(() => {
+    if (isMessageFound) {
+      if (containerRef.current) {
+        const innerContainer = containerRef.current.querySelector(
+          "div.chat-message-grouped-date-container"
+        ) as HTMLDivElement;
+
+        if (innerContainer) {
+          containerRef.current.scrollTop = innerContainer.scrollHeight;
+        }
+      }
+    }
+  }, [isMessageFound]);
+
+  if (isLoading) {
+    return <LoadingCircle />;
+  }
+
+  let container;
+
+  if (!isUserFound) {
+    container = (
+      <span className="error-background error-text" style={{ padding: 12 }}>
+        User not found!
+      </span>
+    );
+  } else if (isMessageFound) {
+    container = Object.keys(targetUser.messages)
+      .reverse()
+      .map((date) => (
+        <MessageDateGroup
+          key={date}
+          date={date}
+          targetUser={targetUser}
+          messages={targetUser.messages[date]}
+        />
+      ));
+  } else
+    container = <span>Start sending message to {targetUser.user_name}</span>;
 
   return (
     <>
       <div className="chat-message-container" ref={containerRef}>
-        {Object.keys(targetUser.messages).length > 0 ? (
-          <div className="chat-message-grouped-date-container">
-            {Object.keys(targetUser.messages)
-              .reverse()
-              .map((date) => (
-                <MessageDateGroup
-                  key={date}
-                  date={date}
-                  targetUser={targetUser}
-                  messages={targetUser.messages[date]}
-                />
-              ))}
-          </div>
-        ) : (
-          <p>No messages found</p>
-        )}
+        <div className="chat-message-grouped-date-container">{container}</div>
       </div>
-      <div style={{ padding: "10px 24px" }}>
-        <Chat user_name={user_name} />
+      <div style={{ padding: "8px" }}>
+        {isUserFound ? (
+          <Chat user_name={targetUser.user_name} />
+        ) : (
+          <Chat disabled={true} />
+        )}
       </div>
     </>
   );

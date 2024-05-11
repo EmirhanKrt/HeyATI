@@ -15,6 +15,7 @@ type FormTextareaPropsType = {
   value: string;
   onChange: ChangeEventHandler<HTMLTextAreaElement>;
   onKeyDown: KeyboardEventHandler<HTMLTextAreaElement>;
+  disabled?: boolean;
 };
 
 export const FormTextarea = (props: FormTextareaPropsType) => {
@@ -46,6 +47,7 @@ export const FormTextarea = (props: FormTextareaPropsType) => {
       value={props.value}
       onChange={handleMessageChange}
       onKeyDown={props.onKeyDown}
+      disabled={props.disabled}
     ></textarea>
   );
 };

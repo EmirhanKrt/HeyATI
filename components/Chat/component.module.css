@@ -28,7 +28,8 @@
   height: fit-content;
   padding: 8px;
   line-height: 24px;
-  gap: 16px;
+  gap: 8px;
+  align-items: center;
 }
 
 .chat_file_preview_item {

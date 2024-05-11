@@ -63,7 +63,7 @@ const ServerNavigationPanel = ({
           document.body.appendChild(tooltip);
           tooltip.style.display = "block";
           tooltip.style.left = `${item.getBoundingClientRect().right + 10}px`;
-          tooltip.style.top = `${item.getBoundingClientRect().top + 7.5}px`;
+          tooltip.style.top = `${item.getBoundingClientRect().top + 3}px`;
         }
       };
 
@@ -114,7 +114,10 @@ const ServerNavigationPanel = ({
 
           return (
             <li key={server.server_id} {...props}>
-              <Link href={`/server/${server.server_id}`}>
+              <Link
+                href={`/server/${server.server_id}`}
+                style={{ fontSize: 15 - serverShortName.length }}
+              >
                 {serverShortName}
               </Link>
               <span className="navigation-panel-server-navigation-list-item-tooltip">
@@ -124,7 +127,12 @@ const ServerNavigationPanel = ({
           );
         })}
         <button
-          style={{ borderRadius: "50%", height: "40px", width: "40px" }}
+          style={{
+            borderRadius: "50%",
+            height: "30px",
+            width: "30px",
+            padding: 0,
+          }}
           onClick={() => setIsOpen(true)}
         >
           +

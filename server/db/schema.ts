@@ -166,10 +166,7 @@ export const privateMessageTable = pgTable(
       .notNull()
       .references(() => userTable.user_id),
     replied_message_id: integer("replied_message_id"),
-    is_edited: boolean("is_edited")
-      .notNull()
-      .default(false)
-      .$onUpdateFn(() => true),
+    is_edited: boolean("is_edited").notNull().default(false),
     updated_at,
     created_at,
   },
@@ -192,10 +189,7 @@ export const channelMessageTable = pgTable(
       .notNull()
       .references(() => channelTable.channel_id, { onDelete: "cascade" }),
     replied_message_id: integer("replied_message_id"),
-    is_edited: boolean("is_edited")
-      .notNull()
-      .default(false)
-      .$onUpdateFn(() => true),
+    is_edited: boolean("is_edited").notNull().default(false),
     updated_at,
     created_at,
   },

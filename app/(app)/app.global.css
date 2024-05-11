@@ -11,8 +11,8 @@ main {
 
 .app-header-title {
   display: flex;
-  width: 250px;
-  min-width: 250px;
+  width: 230px;
+  min-width: 230px;
   gap: 8px;
 }
 
@@ -25,7 +25,7 @@ main {
 }
 
 .app-header .app-header-search {
-  width: calc(100% - 250px - 250px);
+  width: calc(100% - 230px - 230px);
   border-left: 1px solid var(--light-background-color);
   border-right: 1px solid var(--light-background-color);
   padding: 0 24px;
@@ -33,13 +33,14 @@ main {
 
 .app-header .app-header-search input {
   border-radius: 8px;
+  height: 30px;
 }
 
 .app-header .app-header-notification {
   display: flex;
   flex-direction: row-reverse;
-  width: 250px;
-  min-width: 250px;
+  width: 230px;
+  min-width: 230px;
   gap: 10px;
 }
 
@@ -50,10 +51,11 @@ main {
 
 .panel {
   height: calc(100vh - var(--header-height));
+  transition: 0.3s ease;
 }
 
 .navigation-panel {
-  width: 260px;
+  width: 238px;
   display: flex;
   flex-direction: row;
 }
@@ -84,10 +86,10 @@ main {
   border: none;
   outline: none;
   background-color: var(--light-background-color);
-  min-width: 40px;
-  width: 40px;
-  min-height: 40px;
-  height: 40px;
+  min-width: 30px;
+  width: 30px;
+  min-height: 30px;
+  height: 30px;
   cursor: pointer;
   transition: 0.3s ease-in-out;
   list-style-type: none;
@@ -95,7 +97,7 @@ main {
 
 .navigation-panel-server-navigation-list-item.active,
 .navigation-panel-server-navigation-list-item:hover {
-  outline: 4px solid rgba(255, 120, 58, 0.2);
+  outline: 2px solid rgba(255, 120, 58, 0.5);
   background-color: var(--primary-color);
 }
 
@@ -156,16 +158,19 @@ main {
   flex-direction: row-reverse;
   align-items: center;
   height: 30px;
+  cursor: pointer;
 }
 
-.navigation-panel-subpanel-navigation-list-item span {
+.navigation-panel-subpanel-navigation-list-item a {
+  color: inherit;
   font-size: inherit;
   width: 100%;
 }
 
+.navigation-panel-subpanel-navigation-list-item:hover,
 .navigation-panel-subpanel-navigation-list-item.active {
-  color: var(--title-color);
-  background: linear-gradient(
+  color: var(--title-color) !important;
+  background-image: linear-gradient(
     to left,
     rgba(34, 34, 34, 1) 0%,
     rgba(53, 53, 53, 0) 100%
@@ -182,6 +187,7 @@ main {
   display: none;
 }
 
+.navigation-panel-subpanel-navigation-list-item:hover::before,
 .navigation-panel-subpanel-navigation-list-item.active::before {
   display: inline-block;
 }
@@ -238,8 +244,8 @@ main {
   width: 100%;
 }
 
-.detailes-panel {
-  width: 260px;
+.details-panel {
+  width: 238px;
 }
 
 .app-panel {
@@ -247,7 +253,7 @@ main {
   flex-direction: column;
   border-left: 1px solid var(--light-background-color);
   border-right: 1px solid var(--light-background-color);
-  width: calc(100% - 260px - 260px);
+  width: calc(100% - 238px - 238px);
 }
 
 .message-date-separator {
@@ -272,7 +278,7 @@ main {
 }
 
 .chat-message-container {
-  padding: 10px 24px;
+  padding: 8px;
   overflow-y: scroll;
   height: 100%;
 }
@@ -318,7 +324,7 @@ main {
   height: 24px;
   min-height: 24px;
   max-height: 24px;
-
+  font-size: 12px;
   color: var(--title-color);
   display: flex;
   align-items: center;
@@ -344,6 +350,7 @@ main {
 
 .message-icons span {
   cursor: pointer;
+  line-height: 24px;
 }
 
 .message-container:hover .message-icons {
@@ -362,11 +369,20 @@ main {
 }
 
 .message-file-container video {
-  width: 70%;
+  height: 200px;
 }
 
 .message-file-container a:hover {
   text-decoration: underline !important;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  justify-content: space-between;
 }
 
 .overlay {
@@ -431,4 +447,37 @@ main {
 [data-skeleton="true"] {
   animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) 5;
   animation-fill-mode: none;
+}
+
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 50px;
+  height: 50px;
+}
+
+.spinner .path {
+  stroke: var(--primary-color);
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }

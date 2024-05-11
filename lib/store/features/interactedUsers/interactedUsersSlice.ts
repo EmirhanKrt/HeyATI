@@ -7,15 +7,18 @@ import {
 } from "@/server/models";
 import { convertToLocalDateString } from "@/lib/convertToLocalTimeString";
 
-type InteractedUserWithPrivateMessagesType = Record<
+export type InteractedUserWithPrivateMessagesType = SafeUserType & {
+  messages: MessagesGroupedByDateType;
+  isNotInteracted?: boolean;
+};
+
+type RecordInteractedUserWithPrivateMessagesType = Record<
   string,
-  SafeUserType & {
-    messages: MessagesGroupedByDateType;
-  }
+  InteractedUserWithPrivateMessagesType
 >;
 
 type OrderedInteractedUserWithPrivateMessagesType = {
-  users: InteractedUserWithPrivateMessagesType;
+  users: RecordInteractedUserWithPrivateMessagesType;
   order: string[];
 };
 
@@ -51,9 +54,25 @@ export const interactedUsersSlice = createSlice({
         newState.users[action.payload.user_name] = {
           ...action.payload,
           messages: {},
+          isNotInteracted: true,
         };
-        newState.order.push(action.payload.user_name);
+        newState.order.unshift(action.payload.user_name);
       }
+
+      return newState;
+    },
+
+    clearNotInteractedUsers: (state) => {
+      const newState = state;
+
+      Object.keys(newState.users).forEach((user) => {
+        const userState = newState.users[user];
+
+        if (userState.isNotInteracted) {
+          delete newState.users[user];
+          newState.order = newState.order.filter((state) => state !== user);
+        }
+      });
 
       return newState;
     },
@@ -209,6 +228,8 @@ export const {
   initializeInteractedUsers,
   setFirstInteractedUserByUserName,
   setMessagesByUserName,
+  addInteractedUser,
+  clearNotInteractedUsers,
   postMessage,
   updateMessage,
   deleteMessage,

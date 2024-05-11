@@ -160,7 +160,7 @@ export abstract class PrivateMessageService {
   ): Promise<PrivateMessageType> {
     const insertedMessage = await db
       .update(privateMessageTable)
-      .set({ private_message_content })
+      .set({ private_message_content, is_edited: true })
       .where(eq(privateMessageTable.private_message_id, private_message_id))
       .returning();
 

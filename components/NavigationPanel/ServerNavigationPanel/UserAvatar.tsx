@@ -19,13 +19,19 @@ const UserAvatar = () => {
   return (
     <div
       style={{
-        margin: "0 10px",
-        padding: "10px 0",
+        margin: "0 8px",
+        padding: "8px 0",
         borderTop: "1px solid var(--light-background-color)",
       }}
     >
       <button
-        style={{ backgroundColor: selectColor(user.user_name) }}
+        style={{
+          backgroundColor: selectColor(user.user_name),
+          display: "flex",
+          padding: 0,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
         className="navigation-panel-server-navigation-list-item"
         onClick={() => setIsOpen(true)}
       >

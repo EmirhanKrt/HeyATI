@@ -5,9 +5,9 @@ import { useAppSelector } from "@/lib/store/hooks";
 import Link from "next/link";
 
 const DashboardSubNavigationPanel = ({
-  activeUserName,
+  active_user_name,
 }: {
-  activeUserName?: string;
+  active_user_name?: string;
 }) => {
   const interactedUserList = useAppSelector(
     (selector) => selector.interactedUsers
@@ -22,10 +22,10 @@ const DashboardSubNavigationPanel = ({
         <ul className="navigation-panel-subpanel-navigation-list">
           <li
             className={`navigation-panel-subpanel-navigation-list-item ${
-              !activeUserName && "active"
+              !active_user_name && "active"
             }`}
           >
-            <span>Calendar</span>
+            <Link href={"/"}>Calendar</Link>
           </li>
         </ul>
       </nav>
@@ -35,7 +35,9 @@ const DashboardSubNavigationPanel = ({
         <ul>
           {interactedUserList.order.map((userName) => {
             const user = interactedUserList.users[userName];
-            const isActive = activeUserName === user.user_name;
+            if (!user.user_id) return <></>;
+
+            const isActive = active_user_name === user.user_name;
 
             const liAttributes = {
               className: isActive ? "active" : "",
