@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useAppSelector } from "@/lib/store/hooks";
-import { MouseEventHandler, useEffect, useRef, useState } from "react";
+
+import VideoChatContainer from "./VideoChatContainer";
 
 import "./videoChat.global.css";
 
@@ -24,56 +26,6 @@ const VideoChat = () => {
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const [isFullscreen, setIsFullscreen] = useState(true);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-
-  const handleToggle = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
-  const handleMouseDown: MouseEventHandler<HTMLDivElement> = (e) => {
-    if (!isFullscreen && videoContainerRef.current) {
-      const rect = videoContainerRef.current.getBoundingClientRect();
-      setOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-      setIsDragging(true);
-    }
-  };
-
-  const handleMouseMove = (e: any) => {
-    if (isDragging && videoContainerRef.current) {
-      const newLeft = e.clientX - offset.x;
-      const newTop = e.clientY - offset.y;
-      const containerWidth = videoContainerRef.current.offsetWidth;
-      const containerHeight = videoContainerRef.current.offsetHeight;
-      const maxLeft = window.innerWidth - containerWidth;
-      const maxTop = window.innerHeight - containerHeight;
-
-      if (newLeft >= 0 && newLeft <= maxLeft) {
-        videoContainerRef.current.style.left = `${newLeft}px`;
-      }
-      if (newTop >= 0 && newTop <= maxTop) {
-        videoContainerRef.current.style.top = `${newTop}px`;
-      }
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDragging]);
-
   const getPermissions = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -82,11 +34,104 @@ const VideoChat = () => {
       });
       streamRef.current = mediaStream;
 
+      mediaStream.getAudioTracks().forEach((track) => {
+        track.enabled = videoChat.isMicrophoneActive;
+      });
+
+      mediaStream.getVideoTracks().forEach((track) => {
+        track.enabled = videoChat.isCameraActive;
+      });
+
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = mediaStream;
       }
     } catch (error) {
       console.error("Error accessing media devices.", error);
+    }
+  };
+
+  const createOrUpdateVideoElement = (
+    userName: string,
+    stream: MediaStream
+  ) => {
+    if (userName === currentUser.user_name) return;
+
+    let videoContainer = document.getElementById(`video-container-${userName}`);
+    if (!videoContainer) {
+      videoContainer = document.createElement("div");
+      videoContainer.id = `video-container-${userName}`;
+      videoContainer.className = "video";
+
+      const video = document.createElement("video");
+      video.id = `video-${userName}`;
+      video.autoplay = true;
+      video.playsInline = true;
+      if (stream) {
+        video.srcObject = stream;
+      }
+
+      const mutedIcon = document.createElement("div");
+      mutedIcon.className = "muted-icon";
+      mutedIcon.textContent = "🔇";
+
+      videoContainer.appendChild(video);
+
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "name";
+      nameDiv.textContent = userName;
+
+      videoContainer.appendChild(nameDiv);
+      videoContainer.appendChild(mutedIcon);
+
+      if (videoContainerRef.current) {
+        videoContainerRef.current.appendChild(videoContainer);
+      }
+    } else if (stream) {
+      const video = videoContainer.querySelector(
+        `#video-${userName}`
+      ) as HTMLVideoElement;
+      if (video) {
+        video.srcObject = stream;
+      }
+    }
+  };
+
+  const createOrUpdateScreenShareElement = (
+    userName: string,
+    stream: MediaStream
+  ) => {
+    let videoContainer = document.getElementById(`video-container-${userName}`);
+    if (!videoContainer) {
+      videoContainer = document.createElement("div");
+      videoContainer.id = `video-container-${userName}`;
+      videoContainer.className = "video";
+
+      const video = document.createElement("video");
+      video.id = `screen-${userName}`;
+      video.autoplay = true;
+      video.playsInline = true;
+      if (stream) {
+        video.srcObject = stream;
+      }
+
+      videoContainer.appendChild(video);
+
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "name";
+      nameDiv.textContent = "Screen (" + userName + ")";
+
+      videoContainer.appendChild(nameDiv);
+
+      if (videoContainerRef.current) {
+        videoContainerRef.current.appendChild(videoContainer);
+      }
+    } else if (stream) {
+      const video = videoContainer.querySelector(
+        `#screen-${userName}`
+      ) as HTMLVideoElement;
+      if (video) {
+        video.srcObject = stream;
+      }
     }
   };
 
@@ -109,35 +154,14 @@ const VideoChat = () => {
       const stream = e.streams[0];
       console.log(`Received track from ${userName}`);
 
-      const existingVideoElement = document.getElementById(
-        `video-${userName}`
-      ) as HTMLVideoElement;
-      if (existingVideoElement) {
-        existingVideoElement.srcObject = stream;
+      console.log(stream.getVideoTracks());
+
+      if (
+        stream.getVideoTracks().some((track) => track.label.includes("screen"))
+      ) {
+        createOrUpdateScreenShareElement(userName, stream);
       } else {
-        const videoContainer = document.createElement("div");
-        videoContainer.className = "video";
-
-        const span = document.createElement("span");
-
-        const video = document.createElement("video");
-        video.id = `video-${userName}`;
-        video.autoplay = true;
-        video.playsInline = true;
-        video.srcObject = stream;
-
-        span.appendChild(video);
-        videoContainer.appendChild(span);
-
-        const nameDiv = document.createElement("div");
-        nameDiv.className = "name";
-        nameDiv.textContent = userName;
-
-        videoContainer.appendChild(nameDiv);
-
-        if (videoContainerRef.current) {
-          videoContainerRef.current.appendChild(videoContainer);
-        }
+        createOrUpdateVideoElement(userName, stream);
       }
     };
 
@@ -249,58 +273,54 @@ const VideoChat = () => {
   };
 
   useEffect(() => {
-    if (videoChat.roomId) {
-      getPermissions().then(() => {
-        if (!webSocketRef.current) {
-          const webSocket = new WebSocket(
-            `ws://localhost:3001/ws/${videoChat.roomId}`
-          );
-          webSocketRef.current = webSocket;
+    getPermissions().then(() => {
+      if (!webSocketRef.current) {
+        const webSocket = new WebSocket(
+          `ws://localhost:3001/ws/${videoChat.roomId}`
+        );
+        webSocketRef.current = webSocket;
 
-          webSocket.onopen = () => {
-            // Do nothing, permissions are already handled
-          };
+        webSocket.onopen = () => {};
 
-          webSocket.onmessage = (event: MessageEvent) => {
-            const message = JSON.parse(event.data);
-            const data = message.data;
+        webSocket.onmessage = (event: MessageEvent) => {
+          const message = JSON.parse(event.data);
+          const data = message.data;
 
-            switch (data.type) {
-              case "new_user_joined_to_live_chat":
-                handleUserJoined(data.user.user_name);
-                break;
+          switch (data.type) {
+            case "new_user_joined_to_live_chat":
+              handleUserJoined(data.user.user_name);
+              break;
 
-              case "user_left_from_live_chat":
-                handleUserLeft(data.user.user_name);
-                break;
+            case "user_left_from_live_chat":
+              handleUserLeft(data.user.user_name);
+              break;
 
-              case "offer_live_chat":
-                handleOffer(data.offer, data.user.user_name);
-                break;
+            case "offer_live_chat":
+              handleOffer(data.offer, data.user.user_name);
+              break;
 
-              case "answer_live_chat":
-                handleAnswer(data.answer, data.user.user_name);
-                break;
+            case "answer_live_chat":
+              handleAnswer(data.answer, data.user.user_name);
+              break;
 
-              case "ice_candidate_live_chat":
-                handleIceCandidate(data.candidate, data.user.user_name);
-                break;
+            case "ice_candidate_live_chat":
+              handleIceCandidate(data.candidate, data.user.user_name);
+              break;
 
-              default:
-                break;
-            }
-          };
+            default:
+              break;
+          }
+        };
 
-          webSocket.onclose = () => {
-            peers.forEach((peer) => peer.close());
-            peers.clear();
-            if (videoContainerRef.current) {
-              videoContainerRef.current.innerHTML = "";
-            }
-          };
-        }
-      });
-    }
+        webSocket.onclose = () => {
+          peers.forEach((peer) => peer.close());
+          peers.clear();
+          if (videoContainerRef.current) {
+            videoContainerRef.current.innerHTML = "";
+          }
+        };
+      }
+    });
 
     return () => {
       if (webSocketRef.current) {
@@ -308,55 +328,55 @@ const VideoChat = () => {
         webSocketRef.current = null;
       }
     };
-  }, [videoChat.roomId]);
+  }, []);
 
   useEffect(() => {
-    console.log(videoChat.roomId);
-  }, [videoChat.roomId]);
+    if (streamRef.current) {
+      streamRef.current.getAudioTracks().forEach((track) => {
+        track.enabled = videoChat.isMicrophoneActive;
+      });
+
+      streamRef.current.getVideoTracks().forEach((track) => {
+        track.enabled = videoChat.isCameraActive;
+      });
+    }
+
+    peers.forEach((peer) => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
+          const sender = peer
+            .getSenders()
+            .find((s) => s.track?.kind === track.kind);
+          if (sender) {
+            sender.replaceTrack(track);
+          } else {
+            peer.addTrack(track, streamRef.current as MediaStream);
+          }
+        });
+
+        createOrUpdateVideoElement(currentUser.user_name, streamRef.current);
+      }
+    });
+  }, [videoChat.isMicrophoneActive, videoChat.isCameraActive]);
 
   return (
-    videoChat.roomId && (
-      <div className="video-chat-container">
-        {isFullscreen ? (
-          <div>
-            <div ref={videoContainerRef} id="video-container">
-              <div className="video" id="localVideoContainer">
-                <span>
-                  <video
-                    id="localVideo"
-                    ref={localVideoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                  ></video>
-                </span>
-                <div className="name">{currentUser.user_name}</div>
-              </div>
-            </div>
-
-            <div className="video-action-button-container">
-              <button>Sustur</button>
-              <button>Kamera Kapat</button>
-              <button>Ekran Paylaş</button>
-              <button onClick={handleToggle}>▲</button>
-            </div>
-          </div>
-        ) : (
-          <div
-            ref={videoContainerRef}
-            id="video-container"
-            onMouseDown={handleMouseDown}
-          >
-            <div>
-              <button>Sustur</button>
-              <button>Kamera Kapat</button>
-              <button>Ekran Paylaş</button>
-              <button onClick={handleToggle}>▲</button>
-            </div>
-          </div>
-        )}
+    <VideoChatContainer>
+      <div ref={videoContainerRef} id="video-container">
+        <div className="video" id="localVideoContainer">
+          <video
+            id="localVideo"
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+          ></video>
+          {!videoChat.isMicrophoneActive && (
+            <div className="muted-icon">🔇</div>
+          )}
+          <div className="name">{currentUser.user_name}</div>
+        </div>
       </div>
-    )
+    </VideoChatContainer>
   );
 };
 

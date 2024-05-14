@@ -61,6 +61,9 @@ export const videoChatSlice = createSlice({
     toggleCamera: (state) => {
       state.isCameraActive = !state.isCameraActive;
     },
+    toggleScreenShare: (state) => {
+      state.isScreenSharingActive = !state.isScreenSharingActive;
+    },
   },
 });
 
@@ -70,6 +73,7 @@ export const {
   userCalled,
   toggleMicrophone,
   toggleCamera,
+  toggleScreenShare,
 } = videoChatSlice.actions;
 
 export default videoChatSlice.reducer;

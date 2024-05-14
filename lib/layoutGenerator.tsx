@@ -5,8 +5,7 @@ import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import StoreProvider from "./store/StoreProvider";
 
-import VideoChat from "@/components/VideoChat";
-import RequestJoinCall from "@/components/RequestJoinCall";
+import VideoChatWrapper from "@/components/VideoChat/VideoChatWrapper";
 
 import "@/app/globals.css";
 
@@ -51,8 +50,7 @@ const createLayout = ({ type }: LayoutOptions) => {
           >
             <main>
               {children}
-              <VideoChat />
-              <RequestJoinCall />
+              <VideoChatWrapper />
             </main>
           </StoreProvider>
         );

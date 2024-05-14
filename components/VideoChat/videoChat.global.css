@@ -37,18 +37,28 @@
   min-height: 200px;
   position: relative;
   width: 30vw;
+  border-radius: 7px;
+  background: var(--light-background-color);
 }
 
 .video-chat-container #video-container .video video {
   height: 100%;
-  object-fit: cover;
-  position: absolute;
   width: 100%;
+  position: absolute;
+  border-radius: 7px;
+  box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
+}
+
+.video-chat-container #video-container .video .muted-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
 }
 
 .video-chat-container #video-container .video .name {
   background-color: var(--primary-color);
   color: var(--title-color);
+  border-top-left-radius: 7px;
   display: flex;
   flex-direction: row;
   font-size: small;
@@ -65,10 +75,31 @@
   width: fit-content;
 }
 
+.video-chat-container .video-action-button-container svg {
+  stroke: currentColor;
+  height: 24px;
+  width: 24px;
+}
+
+.video-chat-container .video-action-button-container button.icon-button {
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+}
+
 .video-chat-container .video-action-button-container {
   height: 72px;
   display: flex;
   gap: 1rem;
   align-items: center;
   justify-content: center;
+}
+
+.video-chat-container .video-action-button-container .leave-button {
+  background-color: #f50057;
+  color: white;
 }

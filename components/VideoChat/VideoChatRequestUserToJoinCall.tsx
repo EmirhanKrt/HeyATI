@@ -5,7 +5,7 @@ import { useAppSelector } from "@/lib/store/hooks";
 import PopUp from "../PopUp";
 import VideoChatPreview from "../VideoChatPreview";
 
-const RequestJoinCall = () => {
+const VideoChatRequestUserToJoinCall = () => {
   const { callerUser, calledRoomId } = useAppSelector(
     (state) => state.videoChat
   );
@@ -24,7 +24,7 @@ const RequestJoinCall = () => {
     return (
       <PopUp
         type="content"
-        title="Request to join call"
+        title="Invited to join call"
         openState={isOpen}
         setOpenState={setIsOpen}
       >
@@ -41,4 +41,4 @@ const RequestJoinCall = () => {
     );
 };
 
-export default RequestJoinCall;
+export default VideoChatRequestUserToJoinCall;
