@@ -1,10 +1,9 @@
 import { ServerService } from "./services";
 
-type WebSocketType = any;
+type WebSocketType = { socket: any };
 
 type UserNameType = string;
-
-type ConnectedUserMapType = Map<UserNameType, WebSocketType>;
+type UserMapType = Map<UserNameType, WebSocketType>;
 
 type ServerIdType = number;
 type ChannelIdType = number;
@@ -21,14 +20,22 @@ type ServerType = {
 
 type ServerMapType = Map<ServerIdType, ServerType>;
 
+type RoomMap = Map<string, UserNameType[]>;
+
+type RoomUserMap = Map<string, UserMapType>;
+
 class WebSocketManager {
   private static instance: WebSocketManager | null = null;
-  private userSocketMap: ConnectedUserMapType;
+  private userSocketMap: UserMapType;
   private serverSocketMap: ServerMapType;
+  private roomJoinableUserMap: RoomMap;
+  private roomUserSocketMap: RoomUserMap;
 
   constructor() {
     this.userSocketMap = new Map();
     this.serverSocketMap = new Map();
+    this.roomJoinableUserMap = new Map();
+    this.roomUserSocketMap = new Map();
   }
 
   public static async getInstance() {
@@ -69,24 +76,62 @@ class WebSocketManager {
     this.serverSocketMap = serverSocketMap;
   }
 
-  public getAllUsersWebSocket() {
-    return this.userSocketMap;
-  }
-
-  public addUserWebSocket(userName: UserNameType, ws: WebSocketType): void {
-    this.userSocketMap.set(userName, ws);
-  }
-
-  public getUserWebSocket(userName: UserNameType) {
+  public getUserConnection(userName: UserNameType) {
     return this.userSocketMap.get(userName);
   }
 
-  public removeUserWebSocket(userName: UserNameType): void {
+  public onUserConnected(userName: UserNameType, ws: WebSocketType): void {
+    this.userSocketMap.set(userName, ws);
+  }
+
+  public onUserClosed(userName: UserNameType): void {
     this.userSocketMap.delete(userName);
   }
 
-  public getAllServersData() {
-    return this.serverSocketMap;
+  public createRoom(roomId: string, userNameList: UserNameType[]) {
+    this.roomJoinableUserMap.set(roomId, userNameList);
+  }
+
+  public getRoomByRoomId(roomId: string) {
+    return this.roomJoinableUserMap.get(roomId);
+  }
+
+  public removeRoom(roomId: string) {
+    this.roomJoinableUserMap.delete(roomId);
+  }
+
+  public setRoomUserSocketByRoomId(roomId: string, userSocket: UserMapType) {
+    this.roomUserSocketMap.set(roomId, userSocket);
+  }
+
+  public getRoomUserSocketsByRoomId(roomId: string) {
+    return this.roomUserSocketMap.get(roomId);
+  }
+
+  public removeRoomUserSocketByRoomIdAndUserName(
+    roomId: string,
+    userName: string
+  ) {
+    const room = this.getRoomUserSocketsByRoomId(roomId);
+
+    if (room) {
+      room.delete(userName);
+
+      this.setRoomUserSocketByRoomId(roomId, room);
+    }
+  }
+
+  public addRoomUserSocketByRoomIdAndUserName(
+    roomId: string,
+    userName: string
+  ) {
+    const room = this.getRoomUserSocketsByRoomId(roomId);
+
+    if (room) {
+      room.delete(userName);
+
+      this.setRoomUserSocketByRoomId(roomId, room);
+    }
   }
 }
 

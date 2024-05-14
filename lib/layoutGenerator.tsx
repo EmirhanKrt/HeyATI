@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import StoreProvider from "./store/StoreProvider";
 
+import VideoChat from "@/components/VideoChat";
+import RequestJoinCall from "@/components/RequestJoinCall";
+
 import "@/app/globals.css";
-import WebsocketConnection from "@/components/WebsocketConnection";
 
 const archivio = Archivo({ subsets: ["latin"] });
 
@@ -47,8 +49,11 @@ const createLayout = ({ type }: LayoutOptions) => {
             server={fetchUserRequest.data.data.server}
             interactedUsers={fetchUserRequest.data.data.interactedUsers}
           >
-            <WebsocketConnection />
-            <main>{children}</main>
+            <main>
+              {children}
+              <VideoChat />
+              <RequestJoinCall />
+            </main>
           </StoreProvider>
         );
 

@@ -1,0 +1,74 @@
+.video-chat-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background-color: var(--background-color);
+  padding: 1rem;
+}
+
+.video-chat-container > div {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.video-chat-container #video-container {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.video-chat-container #video-container .video {
+  height: 30vh;
+  min-height: 200px;
+  position: relative;
+  width: 30vw;
+}
+
+.video-chat-container #video-container .video video {
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  width: 100%;
+}
+
+.video-chat-container #video-container .video .name {
+  background-color: var(--primary-color);
+  color: var(--title-color);
+  display: flex;
+  flex-direction: row;
+  font-size: small;
+  justify-content: space-evenly;
+  left: 0;
+  line-height: 20px;
+  padding: 5px;
+  position: absolute;
+  text-align: left;
+  top: 0;
+  vertical-align: middle;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
+.video-chat-container .video-action-button-container {
+  height: 72px;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}

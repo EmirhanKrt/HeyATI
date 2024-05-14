@@ -160,13 +160,15 @@ const crudPrivateMessageRoutes = new Elysia({
 
       const wsManager = await WebSocketManager.getInstance();
 
-      const websocket = wsManager.getUserWebSocket(targetUser.user_name);
+      const websocket = wsManager.getUserConnection(targetUser.user_name);
 
       if (websocket) {
-        websocket.send(
+        websocket.socket.send(
           JSON.stringify({
-            type: "post_private_message",
+            success: true,
+            message: "Message sent successfully.",
             data: {
+              type: "post_private_message",
               sender_user_name: senderUser.user_name,
               message: responseMessageData,
             },
@@ -258,13 +260,15 @@ const crudPrivateMessageRoutes = new Elysia({
 
       const wsManager = await WebSocketManager.getInstance();
 
-      const websocket = wsManager.getUserWebSocket(targetUser.user_name);
+      const websocket = wsManager.getUserConnection(targetUser.user_name);
 
       if (websocket) {
-        websocket.send(
+        websocket.socket.send(
           JSON.stringify({
-            type: "update_private_message",
+            success: true,
+            message: "Message updated successfully.",
             data: {
+              type: "update_private_message",
               sender_user_name: user.user_name,
               message: responseMessageData,
             },
@@ -310,13 +314,15 @@ const crudPrivateMessageRoutes = new Elysia({
 
       const wsManager = await WebSocketManager.getInstance();
 
-      const websocket = wsManager.getUserWebSocket(targetUser.user_name);
+      const websocket = wsManager.getUserConnection(targetUser.user_name);
 
       if (websocket) {
-        websocket.send(
+        websocket.socket.send(
           JSON.stringify({
-            type: "delete_private_message",
+            success: true,
+            message: "Message deleted successfully.",
             data: {
+              type: "delete_private_message",
               sender_user_name: user.user_name,
               message: responseMessageData,
             },

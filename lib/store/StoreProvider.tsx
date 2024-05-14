@@ -1,10 +1,11 @@
 "use client";
+
 import { useRef } from "react";
 import { Provider } from "react-redux";
+import { SafeServerType, SafeUserType } from "@/server/models";
 import { makeStore, AppStore } from "./store";
 import { initializeUser } from "./features/user/userSlice";
 import { initializeServer } from "./features/server/serverSlice";
-import { SafeServerType, SafeUserType } from "@/server/models";
 import { initializeInteractedUsers } from "./features/interactedUsers/interactedUsersSlice";
 
 export default function StoreProvider({
@@ -22,6 +23,10 @@ export default function StoreProvider({
 
   if (!storeRef.current) {
     storeRef.current = makeStore();
+    storeRef.current.dispatch({
+      type: "WEBSOCKET_CONNECT",
+      payload: "ws://localhost:3001/ws",
+    });
     storeRef.current.dispatch(initializeUser(user));
     storeRef.current.dispatch(initializeServer(server));
     storeRef.current.dispatch(initializeInteractedUsers(interactedUsers));

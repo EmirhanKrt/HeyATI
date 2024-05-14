@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { LoadingCircle } from "@/components/LoadingCircle";
+import VideoChatPreview from "@/components/VideoChatPreview";
 import { selectColor } from "@/lib/generateBackgroundColorByUserName";
 import { InteractedUserWithPrivateMessagesType } from "@/lib/store/features/interactedUsers/interactedUsersSlice";
+import PopUp from "@/components/PopUp";
 
 const UserDetailsPanel = ({
   isUserFound,
@@ -13,6 +16,12 @@ const UserDetailsPanel = ({
   isLoading: boolean;
   targetUser: InteractedUserWithPrivateMessagesType;
 }) => {
+  const [showPopUp, setShowPopUp] = useState(false);
+
+  const onClick = async () => {
+    setShowPopUp(true);
+  };
+
   if (isLoading) {
     return <LoadingCircle />;
   }
@@ -77,12 +86,30 @@ const UserDetailsPanel = ({
             </p>
           </div>
         </div>
-        <button className="primary">Call</button>
+        <button className="primary" onClick={onClick}>
+          Call
+        </button>
       </>
     );
   }
 
-  return <div className="user-details">{container}</div>;
+  return (
+    <div className="user-details">
+      {container}{" "}
+      <PopUp
+        type="content"
+        title="Video Chat Previewer"
+        openState={showPopUp}
+        setOpenState={setShowPopUp}
+      >
+        <VideoChatPreview
+          type="create_live_chat"
+          setOpenState={setShowPopUp}
+          user_name={targetUser.user_name}
+        />
+      </PopUp>
+    </div>
+  );
 };
 
 export default UserDetailsPanel;
