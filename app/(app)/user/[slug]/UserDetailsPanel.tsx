@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LoadingCircle } from "@/components/LoadingCircle";
-import VideoChatPreview from "@/components/VideoChatPreview";
+import VideoChatPreview from "@/components/VideoChat/VideoChatPreview";
 import { selectColor } from "@/lib/generateBackgroundColorByUserName";
 import { InteractedUserWithPrivateMessagesType } from "@/lib/store/features/interactedUsers/interactedUsersSlice";
-import PopUp from "@/components/PopUp";
 
 const UserDetailsPanel = ({
   isUserFound,
@@ -87,29 +86,20 @@ const UserDetailsPanel = ({
           </div>
         </div>
         <button className="primary" onClick={onClick}>
-          Call
+          {showPopUp ? (
+            <VideoChatPreview
+              containerType="create_live_chat"
+              user_name={targetUser.user_name}
+            />
+          ) : (
+            "Call"
+          )}
         </button>
       </>
     );
   }
 
-  return (
-    <div className="user-details">
-      {container}{" "}
-      <PopUp
-        type="content"
-        title="Video Chat Previewer"
-        openState={showPopUp}
-        setOpenState={setShowPopUp}
-      >
-        <VideoChatPreview
-          type="create_live_chat"
-          setOpenState={setShowPopUp}
-          user_name={targetUser.user_name}
-        />
-      </PopUp>
-    </div>
-  );
+  return <div className="user-details">{container}</div>;
 };
 
 export default UserDetailsPanel;

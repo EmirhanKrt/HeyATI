@@ -4,6 +4,7 @@ import * as plugins from "@/server/plugins";
 import WebSocketManager from "../websocket-data";
 
 const OPERATION = {
+  READY: "ready",
   CREATE: "create",
   JOIN: "join",
   ["ICE-CANDIDATE"]: "ice-candidate",
@@ -121,24 +122,7 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
       if (room && room.includes(currentUser.user_name as string)) {
         let roomUserSockets = wsManager.getRoomUserSocketsByRoomId(room_id);
 
-        if (roomUserSockets) {
-          roomUserSockets.forEach(({ socket }, user) => {
-            const message = {
-              success: true,
-              message: `User: ${currentUser.user_name} joined call.`,
-              data: {
-                type: "new_user_joined_to_live_chat",
-                room_id: room_id,
-                user: currentUser,
-              },
-            };
-
-            if (user !== currentUser.user_name)
-              socket.raw.send(JSON.stringify(message));
-          });
-        } else {
-          roomUserSockets = new Map();
-        }
+        if (!roomUserSockets) roomUserSockets = new Map();
 
         roomUserSockets.set(currentUser.user_name as string, { socket: ws });
 
@@ -168,6 +152,24 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
       );
 
       switch (message.operation_type) {
+        case OPERATION.READY:
+          roomUserList.forEach((socketsInRooom, userName) => {
+            if (userName !== currentUser.user_name) {
+              socketsInRooom.socket.raw.send(
+                JSON.stringify({
+                  success: true,
+                  message: `User: ${currentUser.user_name} joined call.`,
+                  data: {
+                    type: "new_user_joined_to_live_chat",
+                    room_id: room_id,
+                    user: currentUser,
+                  },
+                })
+              );
+            }
+          });
+          break;
+
         case OPERATION.OFFER:
           var targetSocket = roomUserList.get(
             message.payload.user_name as string
@@ -222,6 +224,24 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
           );
           break;
 
+        case OPERATION.LEAVE:
+          roomUserList.forEach((socketsInRooom, userName) => {
+            if (userName !== currentUser.user_name) {
+              socketsInRooom.socket.raw.send(
+                JSON.stringify({
+                  success: true,
+                  message: `User: ${currentUser.user_name} left from call.`,
+                  data: {
+                    type: "user_left_from_live_chat",
+                    room_id: room_id,
+                    user: currentUser,
+                  },
+                })
+              );
+            }
+          });
+          break;
+
         default:
           break;
       }
@@ -246,24 +266,8 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
 
       let roomUserSockets = wsManager.getRoomUserSocketsByRoomId(room_id);
 
-      if (roomUserSockets) {
-        if (roomUserSockets.size !== 0) {
-          roomUserSockets.forEach(({ socket }, user) => {
-            const message = {
-              success: true,
-              message: `User: ${user} joined call.`,
-              data: {
-                type: "user_left_from_live_chat",
-                room_id: room_id,
-                user: currentUser,
-              },
-            };
-
-            socket.raw.send(JSON.stringify(message));
-          });
-        } else {
-          wsManager.removeRoom(room_id);
-        }
+      if (roomUserSockets && roomUserSockets.size === 0) {
+        wsManager.removeRoom(room_id);
       }
     },
   })

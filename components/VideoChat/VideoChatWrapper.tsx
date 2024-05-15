@@ -3,17 +3,24 @@
 import { useAppSelector } from "@/lib/store/hooks";
 
 import VideoChat from ".";
-import VideoChatRequestUserToJoinCall from "./VideoChatRequestUserToJoinCall";
+import VideoChatPreview from "./VideoChatPreview";
+import { useEffect } from "react";
 
-const VideoChatContainer = () => {
+const VideoChatWrapper = () => {
   const videoChat = useAppSelector((state) => state.videoChat);
+
+  useEffect(() => {
+    console.log(videoChat.callerUser);
+  }, [videoChat.callerUser]);
 
   return (
     <>
       {videoChat.roomId !== "" && <VideoChat />}
-      <VideoChatRequestUserToJoinCall />
+      {videoChat.callerUser !== null && (
+        <VideoChatPreview containerType="join_live_chat" />
+      )}
     </>
   );
 };
 
-export default VideoChatContainer;
+export default VideoChatWrapper;

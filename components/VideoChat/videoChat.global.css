@@ -39,20 +39,31 @@
   width: 30vw;
   border-radius: 7px;
   background: var(--light-background-color);
+  transition: box-shadow 0.3s ease;
+  box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
 }
 
 .video-chat-container #video-container .video video {
   height: 100%;
   width: 100%;
-  position: absolute;
   border-radius: 7px;
-  box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
+}
+
+.video-chat-container #video-container .video .empty-video {
+  height: 100%;
+  width: 100%;
+  background-color: inherit;
+  border-radius: 7px;
 }
 
 .video-chat-container #video-container .video .muted-icon {
   position: absolute;
   top: 8px;
   right: 8px;
+}
+
+.video-chat-container #video-container .video.speaking {
+  box-shadow: 0 0 1px 1px var(--primary-color);
 }
 
 .video-chat-container #video-container .video .name {
@@ -76,7 +87,8 @@
 }
 
 .video-chat-container .video-action-button-container svg {
-  stroke: currentColor;
+  stroke: none;
+  fill: currentColor;
   height: 24px;
   width: 24px;
 }
