@@ -135,4 +135,6 @@ class WebSocketManager {
   }
 }
 
-export default WebSocketManager;
+const webSocketManagerInstance = WebSocketManager.getInstance();
+
+export default webSocketManagerInstance;

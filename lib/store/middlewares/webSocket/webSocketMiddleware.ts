@@ -9,7 +9,6 @@ const wsSendMessage = "WEBSOCKET_SEND_MESSAGE";
 
 interface WebSocketConnectAction extends UnknownAction {
   type: "WEBSOCKET_CONNECT";
-  payload: string;
 }
 
 interface WebSocketSendMessageAction extends UnknownAction {
@@ -54,19 +53,20 @@ export const webSocketMiddleware = (
 
     const onClose = (event: any) => {
       storeAPI.dispatch({ type: "WEBSOCKET_CLOSED", payload: event });
+
+      storeAPI.dispatch({
+        type: "WEBSOCKET_CONNECT",
+      });
     };
 
     return (next) => (action: WebSocketAction) => {
       switch (action.type) {
-        case "WEBSOCKET_CONNECT":
-          const { payload: socketCoonectionUrl } =
-            action as WebSocketConnectAction;
-
+        case wsConnect:
           if (socket !== null) {
             socket.close();
           }
 
-          socket = new WebSocket(socketCoonectionUrl);
+          socket = new WebSocket("ws://localhost:3001/ws");
 
           socket.onopen = onOpen;
           socket.onclose = onClose;
@@ -87,17 +87,9 @@ export const webSocketMiddleware = (
           break;
 
         case "WEBSOCKET_ERROR":
-          isConnected = false;
-          socket = null;
-          break;
-
         case "WEBSOCKET_CLOSED":
           isConnected = false;
           socket = null;
-          storeAPI.dispatch({
-            type: "WEBSOCKET_CONNECT",
-            payload: "ws://localhost:3001/ws",
-          });
           break;
 
         default:

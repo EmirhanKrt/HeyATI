@@ -1,11 +1,11 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { toggleMicrophone } from "@/lib/store/features/videoChat/videoChatSlice";
+import { toggleMicrophone } from "@/lib/store/features/mediaPreferences/mediaPreferencesSlice";
 
 const MicrophoneButton = () => {
   const isMicrophoneActive = useAppSelector(
-    (state) => state.videoChat.isMicrophoneActive
+    (state) => state.mediaPreferences.isMicrophoneActive
   );
   const dispatch = useAppDispatch();
 

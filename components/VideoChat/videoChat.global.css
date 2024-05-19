@@ -74,12 +74,12 @@
   flex-direction: row;
   font-size: small;
   justify-content: space-evenly;
-  left: 0;
+  right: 0;
   line-height: 20px;
   padding: 5px;
   position: absolute;
   text-align: left;
-  top: 0;
+  bottom: 0;
   vertical-align: middle;
   width: -webkit-fit-content;
   width: -moz-fit-content;

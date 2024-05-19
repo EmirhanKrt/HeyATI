@@ -14,40 +14,55 @@ const OPERATION = {
 };
 
 const WebsocketServer = new Elysia({ name: "websocket-server" })
-  .onStart(async () => {
-    console.log("websocket is started");
-
-    await WebSocketManager.getInstance();
+  .onStart(() => {
+    console.log("Websocket server running.");
   })
   .use(plugins.jwtPlugin)
   .use(plugins.authPlugin)
+  .derive(async () => {
+    return {
+      wsManager: await WebSocketManager,
+    };
+  })
   .ws("/ws", {
     body: t.Object({
       operation_type: t.String(),
       payload: t.Any(),
     }),
-    open: async (ws) => {
+    open(ws) {
       const currentUser = ws.data.user;
 
       console.log("Socket Opened", currentUser.user_name);
-      const wsManager = await WebSocketManager.getInstance();
+      const wsManager = ws.data.wsManager;
+
+      ws.raw.send(
+        JSON.stringify({
+          success: true,
+          message: `User connected live feed.`,
+          data: {
+            type: "connected",
+            user: currentUser,
+          },
+        })
+      );
 
       wsManager.onUserConnected(currentUser.user_name as string, {
         socket: ws,
       });
-
-      return;
     },
-    message: async (ws, message) => {
+    message(ws, message) {
       const currentUser = ws.data.user;
-      const receiverUserName = message.payload.user_name;
+      const receiverUserNameList = message.payload.user_name;
 
-      const wsManager = await WebSocketManager.getInstance();
+      const wsManager = ws.data.wsManager;
 
       if (message.operation_type === OPERATION.CREATE) {
         const room_id = crypto.randomUUID();
 
-        const roomUserMap = [currentUser.user_name as string, receiverUserName];
+        const roomUserMap = [
+          currentUser.user_name as string,
+          ...receiverUserNameList,
+        ];
 
         wsManager.createRoom(room_id, roomUserMap);
 
@@ -62,21 +77,27 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
           })
         );
 
-        const receiverUserSocket =
-          wsManager.getUserConnection(receiverUserName);
+        if (Array.isArray(receiverUserNameList)) {
+          for (const receiverUserName of receiverUserNameList) {
+            if (receiverUserName === currentUser.user_name) continue;
 
-        if (receiverUserSocket) {
-          receiverUserSocket.socket.send(
-            JSON.stringify({
-              success: true,
-              message: `User: ${currentUser.user_name} called.`,
-              data: {
-                type: "request_user_to_join_live_chat",
-                room_id: room_id,
-                user: currentUser,
-              },
-            })
-          );
+            const receiverUserSocket =
+              wsManager.getUserConnection(receiverUserName);
+
+            if (receiverUserSocket) {
+              receiverUserSocket.socket.send(
+                JSON.stringify({
+                  success: true,
+                  message: `User: ${currentUser.user_name} called.`,
+                  data: {
+                    type: "request_user_to_join_live_chat",
+                    room_id: room_id,
+                    user: currentUser,
+                  },
+                })
+              );
+            }
+          }
         }
       } else if (message.operation_type === OPERATION.JOIN) {
         ws.send(
@@ -85,19 +106,29 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
             message: `Joined room succesfully.`,
             data: {
               type: "join_live_chat",
+              room_id: message.payload.room_id,
             },
           })
         );
       }
     },
-    close: async (ws) => {
+    close(ws) {
       const currentUser = ws.data.user;
 
+      const wsManager = ws.data.wsManager;
       console.log("Socket Closed", currentUser.user_name);
-      const wsManager = await WebSocketManager.getInstance();
 
       wsManager.onUserClosed(currentUser.user_name as string);
-      return;
+      ws.raw.send(
+        JSON.stringify({
+          success: true,
+          message: `User closed live feed.`,
+          data: {
+            type: "closed",
+            user: currentUser,
+          },
+        })
+      );
     },
   })
   .ws("/ws/:room_id", {
@@ -106,7 +137,7 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
       payload: t.Any(),
     }),
 
-    open: async (ws) => {
+    open(ws) {
       const currentUser = ws.data.user;
       const room_id = ws.data.params.room_id;
 
@@ -116,7 +147,7 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
         ws.data.params.room_id
       );
 
-      const wsManager = await WebSocketManager.getInstance();
+      const wsManager = ws.data.wsManager;
       const room = wsManager.getRoomByRoomId(room_id);
 
       if (room && room.includes(currentUser.user_name as string)) {
@@ -132,11 +163,10 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
       }
     },
 
-    message: async (ws, message) => {
+    message(ws, message) {
       const currentUser = ws.data.user;
       const room_id = ws.data.params.room_id;
-
-      const wsManager = await WebSocketManager.getInstance();
+      const wsManager = ws.data.wsManager;
 
       const roomUserList = wsManager.getRoomUserSocketsByRoomId(room_id);
 
@@ -247,7 +277,7 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
       }
     },
 
-    close: async (ws) => {
+    close(ws) {
       const currentUser = ws.data.user;
       const room_id = ws.data.params.room_id;
 
@@ -257,7 +287,7 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
         ws.data.params.room_id
       );
 
-      const wsManager = await WebSocketManager.getInstance();
+      const wsManager = ws.data.wsManager;
 
       wsManager.removeRoomUserSocketByRoomIdAndUserName(
         room_id,

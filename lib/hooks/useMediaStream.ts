@@ -3,14 +3,40 @@ import { useAppSelector } from "../store/hooks";
 
 export const useMediaStream = () => {
   const { isCameraActive, isMicrophoneActive, isScreenSharingActive } =
-    useAppSelector((state) => state.videoChat);
+    useAppSelector((state) => state.mediaPreferences);
 
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [microphoneStream, setMicrophoneStream] = useState<MediaStream | null>(
-    null
+  const generateEmptyAudioTrack = () => {
+    return new AudioContext()
+      .createMediaStreamDestination()
+      .stream.getAudioTracks()[0];
+  };
+
+  const generateEmptyVideoTrack = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 100;
+    canvas.height = 100;
+
+    const context = canvas.getContext("2d");
+
+    if (context) context.fillRect(0, 0, 100, 100);
+
+    const stream = canvas.captureStream();
+    const track = stream.getVideoTracks()[0];
+
+    return Object.assign(track, { enabled: false });
+  };
+
+  const [cameraStream, setCameraStream] = useState<MediaStream>(
+    new MediaStream([generateEmptyVideoTrack()])
   );
-  const [screenShareStream, setScreenShareStream] =
-    useState<MediaStream | null>(null);
+
+  const [microphoneStream, setMicrophoneStream] = useState<MediaStream>(
+    new MediaStream([generateEmptyAudioTrack()])
+  );
+
+  const [screenShareStream, setScreenShareStream] = useState<MediaStream>(
+    new MediaStream([generateEmptyVideoTrack()])
+  );
 
   useEffect(() => {
     const getCameraStream = async () => {
@@ -27,7 +53,7 @@ export const useMediaStream = () => {
         if (cameraStream) {
           cameraStream.getTracks().forEach((track) => track.stop());
         }
-        setCameraStream(null);
+        setCameraStream(new MediaStream([generateEmptyVideoTrack()]));
       }
     };
 
@@ -55,7 +81,7 @@ export const useMediaStream = () => {
         if (microphoneStream) {
           microphoneStream.getTracks().forEach((track) => track.stop());
         }
-        setMicrophoneStream(null);
+        setMicrophoneStream(new MediaStream([generateEmptyAudioTrack()]));
       }
     };
 
@@ -83,7 +109,7 @@ export const useMediaStream = () => {
         if (screenShareStream) {
           screenShareStream.getTracks().forEach((track) => track.stop());
         }
-        setScreenShareStream(null);
+        setScreenShareStream(new MediaStream([generateEmptyVideoTrack()]));
       }
     };
 
@@ -96,5 +122,9 @@ export const useMediaStream = () => {
     };
   }, [isScreenSharingActive]);
 
-  return { cameraStream, microphoneStream, screenShareStream };
+  return {
+    cameraStream,
+    microphoneStream,
+    screenShareStream,
+  };
 };

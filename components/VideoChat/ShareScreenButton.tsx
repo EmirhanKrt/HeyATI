@@ -1,11 +1,11 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { toggleScreenShare } from "@/lib/store/features/videoChat/videoChatSlice";
+import { toggleScreenShare } from "@/lib/store/features/mediaPreferences/mediaPreferencesSlice";
 
 const ScreenShareButton = () => {
   const isScreenSharingActive = useAppSelector(
-    (state) => state.videoChat.isScreenSharingActive
+    (state) => state.mediaPreferences.isScreenSharingActive
   );
   const dispatch = useAppDispatch();
 
@@ -22,7 +22,7 @@ const ScreenShareButton = () => {
           strokeLinecap="round"
           strokeLinejoin="round"
           xmlns="http://www.w3.org/2000/svg"
-          style={{ stroke: "currentcolor" }}
+          style={{ stroke: "currentcolor", fill: "none" }}
         >
           <path d="M21 12v3a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10a1 1 0 0 1 1 -1h9"></path>
           <path d="M7 20l10 0"></path>
@@ -38,7 +38,7 @@ const ScreenShareButton = () => {
           strokeLinecap="round"
           strokeLinejoin="round"
           xmlns="http://www.w3.org/2000/svg"
-          style={{ stroke: "currentcolor" }}
+          style={{ stroke: "currentcolor", fill: "none" }}
         >
           <path d="M21 12v3a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10a1 1 0 0 1 1 -1h9"></path>
           <path d="M7 20l10 0"></path>

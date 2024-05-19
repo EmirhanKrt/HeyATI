@@ -6,7 +6,7 @@ import {
 import {
   createCall,
   joinCall,
-  userCalled,
+  receivedJoinCall,
 } from "../../features/videoChat/videoChatSlice";
 
 const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
@@ -15,8 +15,6 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
   const messageAsJson = JSON.parse(message);
 
   const data = messageAsJson.data;
-
-  console.log("Message from server ", data);
 
   switch (data.type) {
     case "post_private_message":
@@ -60,12 +58,16 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
 
     case "request_user_to_join_live_chat":
       dispatch(
-        userCalled({ calledRoomId: data.room_id, callerUser: data.user })
+        receivedJoinCall({
+          roomId: data.room_id,
+          calledRoomId: data.room_id,
+          callerUser: data.user,
+        })
       );
       break;
 
     case "join_live_chat":
-      dispatch(joinCall());
+      dispatch(joinCall({ roomId: data.room_id }));
       break;
 
     default:

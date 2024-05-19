@@ -23,10 +23,6 @@ export default function StoreProvider({
 
   if (!storeRef.current) {
     storeRef.current = makeStore();
-    storeRef.current.dispatch({
-      type: "WEBSOCKET_CONNECT",
-      payload: "ws://localhost:3001/ws",
-    });
     storeRef.current.dispatch(initializeUser(user));
     storeRef.current.dispatch(initializeServer(server));
     storeRef.current.dispatch(initializeInteractedUsers(interactedUsers));

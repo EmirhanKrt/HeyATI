@@ -5,9 +5,11 @@ import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import StoreProvider from "./store/StoreProvider";
 
-import VideoChatWrapper from "@/components/VideoChat/VideoChatWrapper";
+import VideoChatConditionalPreviewRenderer from "@/components/VideoChat/VideoChatConditionalPreviewRenderer";
+import VideoChatConditionalRenderer from "@/components/VideoChat/VideoChatConditionalRenderer";
 
 import "@/app/globals.css";
+import WebSocketConnection from "@/components/WebSocket";
 
 const archivio = Archivo({ subsets: ["latin"] });
 
@@ -50,7 +52,9 @@ const createLayout = ({ type }: LayoutOptions) => {
           >
             <main>
               {children}
-              <VideoChatWrapper />
+              <WebSocketConnection />
+              <VideoChatConditionalPreviewRenderer />
+              <VideoChatConditionalRenderer />
             </main>
           </StoreProvider>
         );

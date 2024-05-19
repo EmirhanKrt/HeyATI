@@ -4,6 +4,7 @@ import userSlice from "./features/user/userSlice";
 import serverSlice from "./features/server/serverSlice";
 import interactedUsersSlice from "./features/interactedUsers/interactedUsersSlice";
 import videoChatSlice from "./features/videoChat/videoChatSlice";
+import mediaPreferencesSlice from "./features/mediaPreferences/mediaPreferencesSlice";
 
 import webSocketMiddleware from "./middlewares/webSocket/webSocketMiddleware";
 
@@ -17,6 +18,7 @@ const reducer = combineReducers({
   server: serverSlice,
   interactedUsers: interactedUsersSlice,
   videoChat: videoChatSlice,
+  mediaPreferences: mediaPreferencesSlice,
 });
 
 export type TRootState = ReturnType<typeof reducer>;

@@ -2,78 +2,61 @@ import { SafeUserType } from "@/server/models";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type VideoChatStateType = {
-  roomId: string;
-  calledRoomId: string;
-  callerUser: SafeUserType | null;
-  isMicrophoneActive: boolean;
-  isCameraActive: boolean;
-  isScreenSharingActive: boolean;
+  roomId: string | null;
+  showPreview: boolean;
+  showPreviewType: null | "create_live_chat" | "join_live_chat";
+  showPreviewPayload: any;
 };
 
 const initialState: VideoChatStateType = {
-  roomId: "",
-  calledRoomId: "",
-  callerUser: null,
-  isMicrophoneActive: false,
-  isCameraActive: false,
-  isScreenSharingActive: false,
+  roomId: null,
+  showPreview: false,
+  showPreviewType: null,
+  showPreviewPayload: {},
 };
 
 export const videoChatSlice = createSlice({
   name: "videoChat",
   initialState,
   reducers: {
-    createCall: (state, action: PayloadAction<string>) => {
-      const newState = state;
-
-      newState.calledRoomId = action.payload;
-      newState.roomId = "";
-      newState.callerUser = null;
-
-      return newState;
+    requestedCreateCall: (
+      state,
+      action: PayloadAction<{ userName: string }>
+    ) => {
+      state.showPreview = true;
+      state.showPreviewType = "create_live_chat";
+      state.showPreviewPayload = action.payload;
     },
-    joinCall: (state) => {
-      const newState = state;
-
-      newState.roomId = newState.calledRoomId;
-      newState.calledRoomId = "";
-      newState.callerUser = null;
-
-      return newState;
-    },
-    userCalled: (
+    receivedJoinCall: (
       state,
       action: PayloadAction<{
+        roomId: string;
         calledRoomId: string;
         callerUser: SafeUserType;
       }>
     ) => {
-      const newState = state;
-
-      newState.calledRoomId = action.payload.calledRoomId;
-      newState.callerUser = action.payload.callerUser;
-
-      return newState;
+      state.showPreview = true;
+      state.showPreviewType = "join_live_chat";
+      state.showPreviewPayload = action.payload;
     },
-    toggleMicrophone: (state) => {
-      state.isMicrophoneActive = !state.isMicrophoneActive;
+    createCall: (state) => {
+      state.roomId = "";
     },
-    toggleCamera: (state) => {
-      state.isCameraActive = !state.isCameraActive;
-    },
-    toggleScreenShare: (state) => {
-      state.isScreenSharingActive = !state.isScreenSharingActive;
+    joinCall: (
+      state,
+      action: PayloadAction<{
+        roomId: string;
+      }>
+    ) => {
+      state.roomId = action.payload.roomId;
+      state.showPreview = false;
+      state.showPreviewType = null;
+      state.showPreviewPayload = {};
     },
   },
 });
 
-export const {
-  createCall,
-  joinCall,
-  userCalled,
-  toggleMicrophone,
-  toggleCamera,
-  toggleScreenShare,
-} = videoChatSlice.actions;
+export const { requestedCreateCall, receivedJoinCall, createCall, joinCall } =
+  videoChatSlice.actions;
 
 export default videoChatSlice.reducer;

@@ -1,11 +1,11 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { toggleCamera } from "@/lib/store/features/videoChat/videoChatSlice";
+import { toggleCamera } from "@/lib/store/features/mediaPreferences/mediaPreferencesSlice";
 
 const CameraButton = () => {
   const isCameraActive = useAppSelector(
-    (state) => state.videoChat.isCameraActive
+    (state) => state.mediaPreferences.isCameraActive
   );
   const dispatch = useAppDispatch();
 

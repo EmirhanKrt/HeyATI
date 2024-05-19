@@ -5,6 +5,8 @@ import { LoadingCircle } from "@/components/LoadingCircle";
 import VideoChatPreview from "@/components/VideoChat/VideoChatPreview";
 import { selectColor } from "@/lib/generateBackgroundColorByUserName";
 import { InteractedUserWithPrivateMessagesType } from "@/lib/store/features/interactedUsers/interactedUsersSlice";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { requestedCreateCall } from "@/lib/store/features/videoChat/videoChatSlice";
 
 const UserDetailsPanel = ({
   isUserFound,
@@ -15,10 +17,9 @@ const UserDetailsPanel = ({
   isLoading: boolean;
   targetUser: InteractedUserWithPrivateMessagesType;
 }) => {
-  const [showPopUp, setShowPopUp] = useState(false);
-
+  const dispatch = useAppDispatch();
   const onClick = async () => {
-    setShowPopUp(true);
+    dispatch(requestedCreateCall({ userName: targetUser.user_name }));
   };
 
   if (isLoading) {
@@ -86,14 +87,7 @@ const UserDetailsPanel = ({
           </div>
         </div>
         <button className="primary" onClick={onClick}>
-          {showPopUp ? (
-            <VideoChatPreview
-              containerType="create_live_chat"
-              user_name={targetUser.user_name}
-            />
-          ) : (
-            "Call"
-          )}
+          Call
         </button>
       </>
     );

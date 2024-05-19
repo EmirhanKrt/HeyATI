@@ -1,52 +1,95 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/store/hooks";
-import { useWebSocket } from "@/lib/hooks/useWebSocket";
 import useAudioAnalyzer from "@/lib/hooks/useAudioAnalyzer";
-import VideoChatContainer from "./VideoChatContainer";
 import { useMediaStream } from "@/lib/hooks/useMediaStream";
-import useMediaPermissions from "@/lib/hooks/useMediaPermissions";
+import VideoChatContainer from "./VideoChatContainer";
 
 interface PeerStream {
-  videoStream: MediaStream;
-  screenStream: MediaStream;
-  audioStream: MediaStream;
+  cameraStream: MediaStream | null;
+  microphoneStream: MediaStream | null;
+  screenStream: MediaStream | null;
   isMuted: boolean;
-  isSpeaking: boolean;
   isCameraActive: boolean;
   isScreenSharing: boolean;
 }
-
-const ICE_SERVERS = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
-  { urls: "stun:stun3.l.google.com:19302" },
-  { urls: "stun:stun4.l.google.com:19302" },
-];
 
 interface PeerConnection {
   connection: RTCPeerConnection;
   dataChannels: {
     muteStatus: RTCDataChannel;
-    speakingStatus: RTCDataChannel;
     cameraStatus: RTCDataChannel;
     screenShareStatus: RTCDataChannel;
   };
 }
 
+const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
+
 const peerConnections = new Map<string, PeerConnection>();
 
-const VideoChat = () => {
+const emptyStreamTrackIdPeerConnectionMapped: Record<
+  string,
+  { camera: string; microphone: string; screen: string }
+> = {};
+
+const Video = ({
+  peerStream,
+  peerId,
+}: {
+  peerStream: PeerStream;
+  peerId: string;
+}) => {
+  const isSpeaking = useAudioAnalyzer(peerStream.microphoneStream);
+
+  return (
+    <div className={`video ${isSpeaking ? "speaking" : ""}`}>
+      {peerStream.cameraStream && peerStream.isCameraActive ? (
+        <video
+          ref={(videoElement) => {
+            if (videoElement) {
+              videoElement.srcObject = new MediaStream([
+                peerStream.cameraStream!.getVideoTracks()[0],
+              ]);
+            }
+          }}
+          autoPlay
+          playsInline
+        />
+      ) : (
+        <>asdads</>
+      )}
+      {peerStream.microphoneStream && !peerStream.isMuted && (
+        <audio
+          ref={(audioElement) => {
+            if (audioElement) {
+              audioElement.srcObject = new MediaStream([
+                peerStream.microphoneStream!.getAudioTracks()[0],
+              ]);
+            }
+          }}
+          autoPlay
+          playsInline
+        />
+      )}
+
+      <div className="name">{peerId}</div>
+      {peerStream.isMuted && <div className="muted-icon">🔇</div>}
+    </div>
+  );
+};
+
+const VideoChat = ({ roomId }: { roomId: string }) => {
   const currentUser = useAppSelector((state) => state.user);
   const { isCameraActive, isMicrophoneActive, isScreenSharingActive } =
-    useAppSelector((state) => state.videoChat);
-
-  const permissionsGranted = useMediaPermissions();
+    useAppSelector((state) => state.mediaPreferences);
 
   const { cameraStream, microphoneStream, screenShareStream } =
     useMediaStream();
+
+  const [peerStreams, setPeerStreams] = useState<Record<string, PeerStream>>(
+    {}
+  );
 
   const isSpeaking = useAudioAnalyzer(microphoneStream);
 
@@ -54,96 +97,186 @@ const VideoChat = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const screenShareRef = useRef<HTMLVideoElement | null>(null);
 
-  useEffect(() => {
-    if (cameraStream) {
-      console.log("cameraStream:", cameraStream, cameraStream.getVideoTracks());
-      sendStatusUpdate("cameraStatus", true);
-      peerConnections.forEach((peerConnection) => {
-        cameraStream.getTracks().forEach((track) => {
-          const sender = peerConnection.connection
-            .getSenders()
-            .find((s) => s.track?.kind === track.kind);
-          if (sender) {
-            sender.replaceTrack(track);
-          } else {
-            peerConnection.connection.addTrack(track, cameraStream);
-          }
-        });
-      });
+  const socketRef = useRef<WebSocket | null>(null);
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = cameraStream;
+  useEffect(() => {
+    let ws: WebSocket;
+    let reconnectInterval: number | null = null;
+
+    const connectWebSocket = () => {
+      ws = new WebSocket(`ws://localhost:3001/ws/${roomId}`);
+
+      ws.onopen = () => {
+        console.log("WebSocket connected");
+
+        ws.send(
+          JSON.stringify({
+            operation_type: "ready",
+            payload: {
+              room_id: roomId,
+            },
+          })
+        );
+
+        if (reconnectInterval) {
+          clearInterval(reconnectInterval);
+          reconnectInterval = null;
+        }
+      };
+
+      ws.onclose = (event: CloseEvent) => {
+        console.log("WebSocket disconnected", event);
+        if (event.wasClean) {
+          console.log(
+            `Closed cleanly, code=${event.code} reason=${event.reason}`
+          );
+        } else {
+          console.log("Connection died, attempting to reconnect...");
+          if (!reconnectInterval) {
+            reconnectInterval = window.setInterval(connectWebSocket, 1000);
+          }
+        }
+      };
+
+      ws.onerror = (error: Event) => {
+        console.error("WebSocket error:", error);
+      };
+
+      ws.onmessage = async (event: MessageEvent) => {
+        const { data } = JSON.parse(event.data);
+        const {
+          user: { user_name: peerId },
+          type,
+          offer,
+          answer,
+          candidate,
+        } = data;
+
+        switch (type) {
+          case "new_user_joined_to_live_chat":
+            await handleUserJoined(peerId);
+            return;
+
+          case "user_left_from_live_chat":
+            await handleUserLeft(peerId);
+            return;
+
+          case "offer_live_chat":
+            await handleOffer(peerId, offer);
+            return;
+
+          case "answer_live_chat":
+            await handleAnswer(peerId, answer);
+            return;
+
+          case "ice_candidate_live_chat":
+            await handleIceCandidate(peerId, candidate);
+            return;
+
+          default:
+            console.error(`Unhandled message type: ${type}`);
+        }
+
+        return;
+      };
+
+      socketRef.current = ws;
+    };
+
+    connectWebSocket();
+
+    return () => {
+      if (ws) {
+        ws.close();
       }
-    } else {
-      sendStatusUpdate("cameraStatus", false);
+      if (reconnectInterval) {
+        clearInterval(reconnectInterval);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = cameraStream;
     }
+
+    peerConnections.forEach((_, peerId) => {
+      addTrack(peerId, cameraStream, "camera");
+    });
   }, [cameraStream]);
 
   useEffect(() => {
-    if (microphoneStream) {
-      console.log(microphoneStream);
-      sendStatusUpdate("muteStatus", false);
-      peerConnections.forEach((peerConnection) => {
-        microphoneStream.getTracks().forEach((track) => {
-          const sender = peerConnection.connection
-            .getSenders()
-            .find((s) => s.track?.kind === track.kind);
-          if (sender) {
-            sender.replaceTrack(track);
-          } else {
-            peerConnection.connection.addTrack(track, microphoneStream);
-          }
-        });
-      });
-
-      if (audioRef.current) {
-        audioRef.current.srcObject = microphoneStream;
-      }
-    } else {
-      sendStatusUpdate("muteStatus", true);
+    if (audioRef.current) {
+      audioRef.current.srcObject = microphoneStream;
     }
+
+    peerConnections.forEach((_, peerId) => {
+      addTrack(peerId, microphoneStream, "microphone", false);
+    });
   }, [microphoneStream]);
 
   useEffect(() => {
-    if (screenShareStream) {
-      console.log(screenShareStream);
-      sendStatusUpdate("screenShareStatus", true);
-      peerConnections.forEach((peerConnection) => {
-        screenShareStream.getTracks().forEach((track) => {
-          const sender = peerConnection.connection
-            .getSenders()
-            .find((s) => s.track?.kind === track.kind);
-          if (sender) {
-            sender.replaceTrack(track);
-          } else {
-            peerConnection.connection.addTrack(track, screenShareStream);
-          }
-        });
-      });
-
-      if (screenShareRef.current) {
-        screenShareRef.current.srcObject = screenShareStream;
-      }
-    } else {
-      sendStatusUpdate("screenShareStatus", false);
+    if (screenShareRef.current) {
+      screenShareRef.current.srcObject = screenShareStream;
     }
+
+    peerConnections.forEach((_, peerId) => {
+      addTrack(peerId, screenShareStream, "screen");
+    });
   }, [screenShareStream]);
 
-  const [peerStreams, setPeerStreams] = useState<{ [key: string]: PeerStream }>(
-    {}
-  );
+  const addTrack = (
+    peerId: string,
+    stream: MediaStream,
+    type: "camera" | "microphone" | "screen",
+    isVideo: boolean = true
+  ) => {
+    const peerConnection = peerConnections.get(peerId);
 
-  const handleSpeakingStatusMessage = (event: MessageEvent, peerId: string) => {
-    console.log("received speaking", event);
+    if (!peerConnection || !peerConnection.connection) return;
 
-    const isSpeaking = event.data === "true";
-    setPeerStreams((prev) => ({
-      ...prev,
-      [peerId]: {
-        ...prev[peerId],
-        isSpeaking,
-      },
-    }));
+    switch (type) {
+      case "camera":
+        sendStatusUpdate("cameraStatus", isCameraActive);
+        break;
+
+      case "microphone":
+        sendStatusUpdate("muteStatus", !isMicrophoneActive);
+        break;
+
+      case "screen":
+        sendStatusUpdate("screenShareStatus", isScreenSharingActive);
+        break;
+      default:
+        break;
+    }
+
+    let streamTrack;
+    if (isVideo) streamTrack = stream.getVideoTracks()[0];
+    else streamTrack = stream.getAudioTracks()[0];
+
+    let replaceTrackId = emptyStreamTrackIdPeerConnectionMapped[peerId][type];
+
+    console.log(
+      `type ${type}\n`,
+      `streamTrack ${streamTrack.id}\n`,
+      `replaceTrackId ${replaceTrackId}\n`,
+      `senders ${peerConnection.connection
+        .getSenders()
+        .map((s) => s.track?.id)
+        .join(" - ")}`
+    );
+
+    const sender = peerConnection.connection
+      .getSenders()
+      .find((s) => s.track?.id === replaceTrackId);
+
+    if (sender) {
+      sender.replaceTrack(streamTrack);
+      emptyStreamTrackIdPeerConnectionMapped[peerId][type] = streamTrack.id;
+    } else {
+      peerConnection.connection.addTrack(streamTrack, stream);
+    }
   };
 
   const handleMuteStatusMessage = (event: MessageEvent, peerId: string) => {
@@ -200,76 +333,65 @@ const VideoChat = () => {
         sendStatusUpdate("cameraStatus", isCameraActive);
         sendStatusUpdate("screenShareStatus", isScreenSharingActive);
       };
-      dataChannel.onclose = () =>
+
+      dataChannel.onclose = () => {
         console.log("channel " + dataChannel.label + " closed");
+      };
 
       if (dataChannel.label === "muteStatus") {
-        dataChannel.onmessage = (event) =>
+        dataChannel.onmessage = (event) => {
           handleMuteStatusMessage(event, peerId);
-      } else if (dataChannel.label === "speakingStatus") {
-        dataChannel.onmessage = (event) =>
-          handleSpeakingStatusMessage(event, peerId);
+        };
       } else if (dataChannel.label === "cameraStatus") {
-        dataChannel.onmessage = (event) =>
-          handleCameraStatusMessage(event, peerId);
+        {
+          dataChannel.onmessage = (event) =>
+            handleCameraStatusMessage(event, peerId);
+        }
       } else if (dataChannel.label === "screenShareStatus") {
-        dataChannel.onmessage = (event) =>
-          handleScreenShareStatusMessage(event, peerId);
+        {
+          dataChannel.onmessage = (event) =>
+            handleScreenShareStatusMessage(event, peerId);
+        }
       }
     };
 
     const muteStatusChannel = peerConnection.createDataChannel("muteStatus");
-    const speakingStatusChannel =
-      peerConnection.createDataChannel("speakingStatus");
     const cameraStatusChannel =
       peerConnection.createDataChannel("cameraStatus");
     const screenShareStatusChannel =
       peerConnection.createDataChannel("screenShareStatus");
 
-    peerConnection.ontrack = (event) => {
-      console.log("Track received:", event.track);
-      onTrack(event, peerId);
-    };
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log("ICE candidate:", event.candidate);
-        onICECandidate(event, peerId);
-      } else {
-        console.log("All ICE candidates have been sent");
-      }
-    };
-    peerConnection.onicecandidateerror = (event) => {
-      console.error("ICE Candidate Error:", event);
-    };
+    peerConnection.ontrack = (event) => onTrack(event, peerId);
 
-    peerConnection.onconnectionstatechange = (event) => {
-      console.log("Peer Connection State Change:", event);
-    };
+    peerConnection.onicecandidate = (event) => onICECandidate(event, peerId);
 
-    const addTracks = (stream: MediaStream, label: string) => {
-      console.log(`Adding ${label} tracks:`, stream.getTracks());
-      stream.getTracks().forEach((track) => {
-        peerConnection.addTrack(track, stream);
-      });
+    peerConnection.onnegotiationneeded = async () => {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+
+      socketRef.current?.send(
+        JSON.stringify({
+          operation_type: "offer",
+          payload: {
+            user_name: peerId,
+            offer,
+          },
+        })
+      );
+
+      return;
     };
 
-    if (cameraStream) {
-      addTracks(cameraStream, "camera");
-    }
-
-    if (microphoneStream) {
-      addTracks(microphoneStream, "microphone");
-    }
-
-    if (screenShareStream) {
-      addTracks(screenShareStream, "screen share");
-    }
+    emptyStreamTrackIdPeerConnectionMapped[peerId] = {
+      camera: cameraStream.getVideoTracks()[0].id,
+      microphone: microphoneStream.getAudioTracks()[0].id,
+      screen: screenShareStream.getVideoTracks()[0].id,
+    };
 
     const peerConnectionData = {
       connection: peerConnection,
       dataChannels: {
         muteStatus: muteStatusChannel,
-        speakingStatus: speakingStatusChannel,
         cameraStatus: cameraStatusChannel,
         screenShareStatus: screenShareStatusChannel,
       },
@@ -277,34 +399,49 @@ const VideoChat = () => {
 
     peerConnections.set(peerId, peerConnectionData);
 
+    /*     addTrack(peerId, cameraStream, "camera");
+    addTrack(peerId, microphoneStream, "microphone", false);
+    addTrack(peerId, screenShareStream, "screen"); */
+
+    setPeerStreams((prev) => {
+      const peerStream = prev[peerId] || {
+        videoStream: null,
+        screenStream: null,
+        audioStream: null,
+        isCameraActive: false,
+        isScreenSharing: false,
+        isMuted: true,
+      };
+
+      return {
+        ...prev,
+        [peerId]: { ...prev[peerId], ...peerStream },
+      };
+    });
+
     return peerConnectionData;
   };
 
   const onTrack = (event: RTCTrackEvent, peerId: string) => {
     const track = event.track;
-
-    console.dir({ track });
+    const stream = event.streams[0];
 
     setPeerStreams((prev) => {
       const peerStream = prev[peerId] || {
-        videoStream: new MediaStream(),
-        screenStream: new MediaStream(),
-        audioStream: new MediaStream(),
+        videoStream: null,
+        screenStream: null,
+        audioStream: null,
         isCameraActive: false,
         isScreenSharing: false,
         isMuted: true,
-        isSpeaking: false,
       };
 
       if (track.kind === "video" && track.label.includes("screen")) {
-        peerStream.screenStream.addTrack(track);
-        peerStream.isScreenSharing = true;
+        peerStream.screenStream = stream;
       } else if (track.kind === "video") {
-        peerStream.videoStream.addTrack(track);
-        peerStream.isCameraActive = true;
+        peerStream.cameraStream = stream;
       } else if (track.kind === "audio") {
-        peerStream.audioStream.addTrack(track);
-        peerStream.isMuted = false;
+        peerStream.microphoneStream = stream;
       }
 
       return {
@@ -316,55 +453,17 @@ const VideoChat = () => {
 
   const onICECandidate = (event: RTCPeerConnectionIceEvent, peerId: string) => {
     if (event.candidate) {
-      console.log("Sending ICE candidate:", event.candidate);
-      sendMessage({
-        operation_type: "ice-candidate",
-        payload: {
-          candidate: event.candidate,
-          user_name: peerId,
-        },
-      });
+      socketRef.current?.send(
+        JSON.stringify({
+          operation_type: "ice-candidate",
+          payload: {
+            candidate: event.candidate,
+            user_name: peerId,
+          },
+        })
+      );
     }
   };
-
-  const handleWebSocketMessage = useCallback(async (message: any) => {
-    const {
-      user: { user_name: peerId },
-      type,
-      offer,
-      answer,
-      candidate,
-    } = message;
-
-    console.log("Received WebSocket message:", message);
-
-    switch (type) {
-      case "new_user_joined_to_live_chat":
-        await handleUserJoined(peerId);
-        break;
-
-      case "user_left_from_live_chat":
-        await handleUserLeft(peerId);
-        break;
-
-      case "offer_live_chat":
-        await handleOffer(peerId, offer);
-        break;
-
-      case "answer_live_chat":
-        await handleAnswer(peerId, answer);
-        break;
-
-      case "ice_candidate_live_chat":
-        await handleIceCandidate(peerId, candidate);
-        break;
-
-      default:
-        console.error(`Unhandled message type: ${type}`);
-    }
-  }, []);
-
-  const { sendMessage } = useWebSocket(handleWebSocketMessage);
 
   const handleUserJoined = async (peerId: string) => {
     const { connection } = await createPeerConnection(peerId);
@@ -372,13 +471,15 @@ const VideoChat = () => {
     const offer = await connection.createOffer();
     await connection.setLocalDescription(new RTCSessionDescription(offer));
 
-    sendMessage({
-      operation_type: "offer",
-      payload: {
-        user_name: peerId,
-        offer,
-      },
-    });
+    socketRef.current?.send(
+      JSON.stringify({
+        operation_type: "offer",
+        payload: {
+          user_name: peerId,
+          offer,
+        },
+      })
+    );
   };
 
   const handleOffer = async (
@@ -391,13 +492,15 @@ const VideoChat = () => {
     const answer = await connection.createAnswer();
     await connection.setLocalDescription(new RTCSessionDescription(answer));
 
-    sendMessage({
-      operation_type: "answer",
-      payload: {
-        user_name: peerId,
-        answer,
-      },
-    });
+    socketRef.current?.send(
+      JSON.stringify({
+        operation_type: "answer",
+        payload: {
+          user_name: peerId,
+          answer,
+        },
+      })
+    );
   };
 
   const handleAnswer = async (
@@ -448,19 +551,6 @@ const VideoChat = () => {
   };
 
   useEffect(() => {
-    const initialize = async () => {
-      sendMessage({
-        operation_type: "ready",
-        payload: {},
-      });
-    };
-
-    if (permissionsGranted) {
-      initialize();
-    }
-  }, [permissionsGranted]);
-
-  useEffect(() => {
     return () => {
       peerConnections.forEach((peerConnection) =>
         peerConnection.connection.close()
@@ -469,75 +559,16 @@ const VideoChat = () => {
     };
   }, []);
 
-  useEffect(() => {
-    console.log(peerStreams);
-  }, [peerStreams]);
-
   return (
     <VideoChatContainer containerType="live_chat">
       <div className={`video ${isSpeaking ? "speaking" : ""}`}>
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          style={{ display: isCameraActive ? "block" : "none" }}
-        ></video>
-        <audio
-          ref={audioRef}
-          autoPlay
-          style={{ display: isMicrophoneActive ? "block" : "none" }}
-          muted
-        ></audio>
-        <video
-          ref={screenShareRef}
-          autoPlay
-          playsInline
-          style={{ display: isScreenSharingActive ? "block" : "none" }}
-        ></video>
+        <video ref={videoRef} autoPlay playsInline muted></video>
+        <audio ref={audioRef} muted></audio>
         <div className="name">{currentUser.user_name} (you)</div>
-        {!isMicrophoneActive && <div className="muted-icon">🔇</div>}
+        {!microphoneStream && <div className="muted-icon">🔇</div>}
       </div>
-      {Object.keys(peerStreams).map((peerId) => (
-        <div
-          className={`video ${
-            peerStreams[peerId].isSpeaking ? "speaking" : ""
-          }`}
-          key={peerId}
-        >
-          {peerStreams[peerId].isCameraActive && (
-            <video
-              ref={(videoElement) => {
-                if (videoElement) {
-                  videoElement.srcObject = peerStreams[peerId].videoStream;
-                }
-              }}
-              autoPlay
-              playsInline
-            />
-          )}
-          {peerStreams[peerId].isScreenSharing && (
-            <video
-              ref={(screenElement) => {
-                if (screenElement) {
-                  screenElement.srcObject = peerStreams[peerId].screenStream;
-                }
-              }}
-              autoPlay
-              playsInline
-            />
-          )}
-          <audio
-            ref={(audioElement) => {
-              if (audioElement) {
-                audioElement.srcObject = peerStreams[peerId].audioStream;
-              }
-            }}
-            autoPlay
-            playsInline
-          />
-          <div className="name">{peerId}</div>
-          {peerStreams[peerId].isMuted && <div className="muted-icon">🔇</div>}
-        </div>
+      {Object.entries(peerStreams).map(([peerId, peerStream]) => (
+        <Video peerStream={peerStream} peerId={peerId} key={peerId} />
       ))}
     </VideoChatContainer>
   );

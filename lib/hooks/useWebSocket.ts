@@ -6,14 +6,29 @@ export const useWebSocket = (onMessage: (message: any) => void) => {
   const { roomId } = useAppSelector((state) => state.videoChat);
 
   useEffect(() => {
+    if (!roomId) return;
+
     const ws = new WebSocket(`ws://localhost:3001/ws/${roomId}`);
 
     ws.onopen = () => {
       console.log("WebSocket connected");
     };
-    ws.onclose = () => {
-      console.log("WebSocket disconnected");
+
+    ws.onclose = (event) => {
+      console.log("WebSocket disconnected", event);
+      if (event.wasClean) {
+        console.log(
+          `Closed cleanly, code=${event.code} reason=${event.reason}`
+        );
+      } else {
+        console.log(`Connection died`);
+      }
     };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
     ws.onmessage = (event) => {
       const { data } = JSON.parse(event.data);
       onMessage(data);
@@ -22,14 +37,17 @@ export const useWebSocket = (onMessage: (message: any) => void) => {
     socketRef.current = ws;
 
     return () => {
-      ws.close();
+      if (ws) {
+        ws.close();
+      }
     };
   }, [roomId, onMessage]);
 
   const sendMessage = (message: any) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      console.log("sendMessage", message);
       socketRef.current.send(JSON.stringify(message));
+    } else {
+      console.error("WebSocket is not open");
     }
   };
 

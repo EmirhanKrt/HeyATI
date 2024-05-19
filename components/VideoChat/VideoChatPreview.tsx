@@ -3,12 +3,11 @@ import { useAppSelector } from "@/lib/store/hooks";
 import useMediaPermissions from "@/lib/hooks/useMediaPermissions";
 import { useMediaStream } from "@/lib/hooks/useMediaStream";
 import VideoChatContainer from "./VideoChatContainer";
-import useAudioAnalyzer from "@/lib/hooks/useAudioAnalyzer";
 import { LoadingCircle } from "../LoadingCircle";
 
 type CreateVideoChatContainerType = {
   containerType: "create_live_chat";
-  user_name: string;
+  userName: string;
 };
 
 type JoinVideoChatContainerType = {
@@ -22,11 +21,13 @@ type VideoChatContainerType =
 const VideoChatPreview = (props: VideoChatContainerType) => {
   const permissionsGranted = useMediaPermissions();
   const { cameraStream, microphoneStream } = useMediaStream();
-  const isSpeaking = useAudioAnalyzer(microphoneStream);
 
-  const { user_name } = useAppSelector((state) => state.user);
-  const { isMicrophoneActive, isCameraActive, calledRoomId, callerUser } =
-    useAppSelector((state) => state.videoChat);
+  const { calledRoomId, callerUser } = useAppSelector(
+    (state) => state.videoChat.showPreviewPayload
+  );
+  const { isMicrophoneActive, isCameraActive } = useAppSelector(
+    (state) => state.mediaPreferences
+  );
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -44,34 +45,59 @@ const VideoChatPreview = (props: VideoChatContainerType) => {
   }, [microphoneStream]);
 
   if (permissionsGranted === null) {
-    return <LoadingCircle width={28} height={28} isPrimary={false} />;
+    return (
+      <div className="video-chat-container">
+        <LoadingCircle width={28} height={28} isPrimary={false} />
+      </div>
+    );
   }
 
   if (!permissionsGranted) {
-    return <div>Permission required</div>;
+    return (
+      <div className="video-chat-container">
+        <h4>Permission required</h4>
+      </div>
+    );
   }
 
   let content = <></>;
+
+  const defaultContent = (
+    <div className={"video"}>
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        style={{ display: isCameraActive ? "block" : "none" }}
+      ></video>
+      <audio
+        ref={audioRef}
+        autoPlay
+        style={{ display: isMicrophoneActive ? "block" : "none" }}
+      ></audio>
+      {!isMicrophoneActive && <div className="muted-icon">🔇</div>}
+    </div>
+  );
 
   if (props.containerType === "create_live_chat")
     content = (
       <VideoChatContainer
         containerType="create_live_chat"
-        user_name={props.user_name}
+        userName={props.userName}
       >
-        <div className={`video ${isSpeaking ? "speaking" : ""}`}>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            style={{ display: isCameraActive ? "block" : "none" }}
-          ></video>
-          <audio
-            ref={audioRef}
-            autoPlay
-            style={{ display: isMicrophoneActive ? "block" : "none" }}
-          ></audio>
-          {!isMicrophoneActive && <div className="muted-icon">🔇</div>}
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
+          <h4>You are going to call {props.userName}</h4>
+          {defaultContent}
         </div>
       </VideoChatContainer>
     );
@@ -80,22 +106,22 @@ const VideoChatPreview = (props: VideoChatContainerType) => {
     content = (
       <VideoChatContainer
         containerType="join_live_chat"
-        user_name={callerUser!.user_name}
+        userName={callerUser.user_name}
         room_id={calledRoomId}
       >
-        <div className={`video ${isSpeaking ? "speaking" : ""}`}>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            style={{ display: isCameraActive ? "block" : "none" }}
-          ></video>
-          <audio
-            ref={audioRef}
-            autoPlay
-            style={{ display: isMicrophoneActive ? "block" : "none" }}
-          ></audio>
-          {!isMicrophoneActive && <div className="muted-icon">🔇</div>}
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
+          <h4>{callerUser.user_name} is calling</h4>
+          {defaultContent}
         </div>
       </VideoChatContainer>
     );
