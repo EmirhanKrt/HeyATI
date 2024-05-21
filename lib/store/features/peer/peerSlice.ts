@@ -1,95 +1,89 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-
-export interface DataChannels {
-  muteStatus: RTCDataChannel;
-  cameraStatus: RTCDataChannel;
-  screenShareStatus: RTCDataChannel;
-}
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface PeerConnectionState {
-  connection: RTCPeerConnection;
-  dataChannels: DataChannels;
-  streams: {
-    camera: MediaStream | null;
-    microphone: MediaStream | null;
-    screen: MediaStream | null;
-  };
+  isMicrophoneActive: boolean;
+  isCameraActive: boolean;
+  isScreenActive: boolean;
+  screenShareTrackId?: string;
 }
 
 interface PeersState {
-  peers: Record<string, PeerConnectionState>;
+  peerConnectionStates: Record<string, PeerConnectionState>;
 }
 
 const initialState: PeersState = {
-  peers: {},
+  peerConnectionStates: {},
 };
 
-export const addPeerConnection = createAsyncThunk(
-  "peers/addPeerConnection",
-  async ({
-    peerId,
-    connection,
-    dataChannels,
-  }: {
-    peerId: string;
-    connection: RTCPeerConnection;
-    dataChannels: DataChannels;
-  }) => {
-    return { peerId, connection, dataChannels };
-  }
-);
-
-const peerSlice = createSlice({
-  name: "peer",
+const peerConnectionStateSlice = createSlice({
+  name: "peerConnectionState",
   initialState,
   reducers: {
-    removePeerConnection: (
-      state,
-      action: PayloadAction<{ peerId: string }>
-    ) => {
-      const { peerId } = action.payload;
-      delete state.peers[peerId];
-    },
-    updatePeerStream: (
+    initializePeerConnectionState: (
       state,
       action: PayloadAction<{
         peerId: string;
-        streamType: "camera" | "microphone" | "screen";
-        stream: MediaStream;
       }>
     ) => {
-      const { peerId, streamType, stream } = action.payload;
-      if (state.peers[peerId]) {
-        state.peers[peerId].streams[streamType] = stream;
+      if (!state.peerConnectionStates[action.payload.peerId]) {
+        state.peerConnectionStates[action.payload.peerId] = {
+          isMicrophoneActive: false,
+          isCameraActive: false,
+          isScreenActive: false,
+        };
+      }
+    },
+    updatePeerConnectionState: (
+      state,
+      action: PayloadAction<{
+        peerId: string;
+        mediaType: "camera" | "microphone" | "screen";
+        mediaStatus: boolean;
+      }>
+    ) => {
+      if (state.peerConnectionStates[action.payload.peerId]) {
+        const peerConnectionState: any = {};
+
+        switch (action.payload.mediaType) {
+          case "camera":
+            peerConnectionState.isCameraActive = action.payload.mediaStatus;
+            break;
+
+          case "microphone":
+            peerConnectionState.isMicrophoneActive = action.payload.mediaStatus;
+            break;
+
+          case "screen":
+            peerConnectionState.isScreenActive = action.payload.mediaStatus;
+            break;
+
+          default:
+            break;
+        }
+
+        state.peerConnectionStates[action.payload.peerId] = {
+          ...state.peerConnectionStates[action.payload.peerId],
+          ...peerConnectionState,
+        };
+      }
+    },
+    removePeerConnectionState: (
+      state,
+      action: PayloadAction<{
+        peerId: string;
+      }>
+    ) => {
+      if (state.peerConnectionStates[action.payload.peerId]) {
+        delete state.peerConnectionStates[action.payload.peerId];
       }
     },
   },
-  extraReducers: (builder) => {
-    builder.addCase(
-      addPeerConnection.fulfilled,
-      (
-        state,
-        action: PayloadAction<{
-          peerId: string;
-          connection: RTCPeerConnection;
-          dataChannels: DataChannels;
-        }>
-      ) => {
-        const { peerId, connection, dataChannels } = action.payload;
-        state.peers[peerId] = {
-          connection,
-          dataChannels,
-          streams: {
-            camera: null,
-            microphone: null,
-            screen: null,
-          },
-        };
-      }
-    );
-  },
 });
 
-export const { removePeerConnection, updatePeerStream } = peerSlice.actions;
+export const {
+  initializePeerConnectionState,
+  updatePeerConnectionState,
+  removePeerConnectionState,
+} = peerConnectionStateSlice.actions;
 
-export default peerSlice.reducer;
+export default peerConnectionStateSlice.reducer;

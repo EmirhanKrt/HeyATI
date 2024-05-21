@@ -124,14 +124,12 @@ const VideoChatContainer = (props: VideoChatContainerType) => {
       break;
   }
   return (
-    <div className="video-chat-container">
-      <div>
-        <div id="video-container">{props.children}</div>
-        <div className="video-action-button-container">
-          <MicrophoneButton />
-          <CameraButton />
-          {buttonGroup}
-        </div>
+    <div className="video-chat">
+      <div className="video-chat-container">{props.children}</div>
+      <div className="video-action-button-container">
+        <MicrophoneButton />
+        <CameraButton />
+        {buttonGroup}
       </div>
     </div>
   );

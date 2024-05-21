@@ -10,6 +10,7 @@ const OPERATION = {
   ["ICE-CANDIDATE"]: "ice-candidate",
   OFFER: "offer",
   ANSWER: "answer",
+  "MEDIA-UPDATE": "media-update",
   LEAVE: "leave",
 };
 
@@ -107,6 +108,40 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
             data: {
               type: "join_live_chat",
               room_id: message.payload.room_id,
+            },
+          })
+        );
+      } else if (message.operation_type === OPERATION.LEAVE) {
+        const roomUserList = wsManager.getRoomUserSocketsByRoomId(
+          message.payload.room_id
+        );
+
+        if (!roomUserList) return;
+
+        roomUserList.forEach((socketsInRooom, userName) => {
+          if (userName !== currentUser.user_name) {
+            socketsInRooom.socket.raw.send(
+              JSON.stringify({
+                success: true,
+                message: `User: ${currentUser.user_name} left from call.`,
+                data: {
+                  type: "user_left_from_live_chat",
+                  room_id: message.payload.room_id,
+                  user: currentUser,
+                },
+              })
+            );
+          }
+        });
+
+        ws.send(
+          JSON.stringify({
+            success: true,
+            message: `Leaved room succesfully.`,
+            data: {
+              type: "user_left_from_live_chat",
+              room_id: message.payload.room_id,
+              user: currentUser,
             },
           })
         );
@@ -252,6 +287,25 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
               },
             })
           );
+          break;
+
+        case OPERATION["MEDIA-UPDATE"]:
+          var targetSocket = roomUserList.get(
+            message.payload.user_name as string
+          )!;
+
+          var data: any = {
+            success: true,
+            message: `User: ${currentUser.user_name} updated ${message.payload.media_type} status.`,
+            data: {
+              type: "media_update_live_chat",
+              user: currentUser,
+              media_type: message.payload.media_type,
+              media_status: message.payload.media_status,
+            },
+          };
+
+          targetSocket.socket.raw.send(JSON.stringify(data));
           break;
 
         case OPERATION.LEAVE:

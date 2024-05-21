@@ -25,7 +25,7 @@ const VideoChatPreview = (props: VideoChatContainerType) => {
   const { calledRoomId, callerUser } = useAppSelector(
     (state) => state.videoChat.showPreviewPayload
   );
-  const { isMicrophoneActive, isCameraActive } = useAppSelector(
+  const { isMicrophoneActive } = useAppSelector(
     (state) => state.mediaPreferences
   );
 
@@ -46,7 +46,7 @@ const VideoChatPreview = (props: VideoChatContainerType) => {
 
   if (permissionsGranted === null) {
     return (
-      <div className="video-chat-container">
+      <div className="video-chat">
         <LoadingCircle width={28} height={28} isPrimary={false} />
       </div>
     );
@@ -54,7 +54,7 @@ const VideoChatPreview = (props: VideoChatContainerType) => {
 
   if (!permissionsGranted) {
     return (
-      <div className="video-chat-container">
+      <div className="video-chat">
         <h4>Permission required</h4>
       </div>
     );
@@ -63,19 +63,18 @@ const VideoChatPreview = (props: VideoChatContainerType) => {
   let content = <></>;
 
   const defaultContent = (
-    <div className={"video"}>
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        style={{ display: isCameraActive ? "block" : "none" }}
-      ></video>
-      <audio
-        ref={audioRef}
-        autoPlay
-        style={{ display: isMicrophoneActive ? "block" : "none" }}
-      ></audio>
-      {!isMicrophoneActive && <div className="muted-icon">🔇</div>}
+    <div
+      id="video-container"
+      style={{
+        width: "30vw",
+        height: "30vh",
+      }}
+    >
+      <div className={"video"}>
+        <video ref={videoRef} autoPlay playsInline></video>
+        <audio ref={audioRef} autoPlay></audio>
+        {!isMicrophoneActive && <div className="muted-icon">🔇</div>}
+      </div>
     </div>
   );
 

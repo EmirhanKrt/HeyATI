@@ -10,8 +10,11 @@ const VideoChatConditionalRenderer = () => {
   const [content, setContent] = useState<ReactNode | null>(null);
 
   useEffect(() => {
+    console.log(roomId);
     if (roomId) {
       setContent(<VideoChat roomId={roomId} />);
+    } else {
+      setContent(null);
     }
   }, [roomId]);
 
