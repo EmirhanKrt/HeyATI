@@ -1,100 +1,129 @@
-.video-chat-container {
+.video-chat {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   display: flex;
-  flex-direction: row;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
   overflow: hidden;
   background-color: var(--background-color);
   padding: 1rem;
+  gap: 1rem;
 }
 
-.video-chat-container > div {
+.video-chat-container {
   display: flex;
-  flex-direction: column;
   width: 100%;
-  height: 100%;
+  gap: 1rem;
+  height: calc(100vh - 2rem - 56px - 1rem);
 }
 
-.video-chat-container #video-container {
-  position: relative;
+#screen-share-video-container {
+  flex-grow: 1;
   display: flex;
+  overflow: hidden;
+}
+
+#screen-share-video-container > * {
+  display: none;
+}
+
+#screen-share-video-container .video.active {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  display: flex;
+}
+
+#video-container {
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   width: 100%;
-  height: 100%;
+  overflow: hidden;
+}
+
+#video-container .video {
+  background-color: var(--button-background-color);
+  position: relative;
+  width: 100%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: row;
-  flex-wrap: wrap;
+  height: -webkit-fill-available;
 }
 
-.video-chat-container #video-container .video {
-  height: 30vh;
-  min-height: 200px;
-  position: relative;
-  width: 30vw;
-  border-radius: 7px;
-  background: var(--light-background-color);
-  transition: box-shadow 0.3s ease;
-  box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
-}
-
-.video-chat-container #video-container .video video {
-  height: 100%;
+#screen-share-video-container .video video,
+#video-container .video video {
+  background-color: var(--button-background-color);
   width: 100%;
-  border-radius: 7px;
+  height: auto;
+  display: block;
 }
 
-.video-chat-container #video-container .video .empty-video {
-  height: 100%;
-  width: 100%;
-  background-color: inherit;
-  border-radius: 7px;
-}
-
-.video-chat-container #video-container .video .muted-icon {
+#video-container .video .muted-icon {
   position: absolute;
   top: 8px;
   right: 8px;
 }
 
-.video-chat-container #video-container .video.speaking {
-  box-shadow: 0 0 1px 1px var(--primary-color);
-}
-
-.video-chat-container #video-container .video .name {
-  background-color: var(--primary-color);
+.name {
+  background-color: var(--secondary-background-color);
   color: var(--title-color);
-  border-top-left-radius: 7px;
-  display: flex;
-  flex-direction: row;
-  font-size: small;
-  justify-content: space-evenly;
   right: 0;
-  line-height: 20px;
-  padding: 5px;
+  font-size: 12px;
+  line-height: 12px;
+  padding: 8px;
   position: absolute;
-  text-align: left;
   bottom: 0;
-  vertical-align: middle;
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
   width: fit-content;
 }
 
-.video-chat-container .video-action-button-container svg {
+#screen-share-video-container:has(> .video.active) + #video-container {
+  flex-direction: column;
+}
+
+#screen-share-video-container:has(> .video.active) + #video-container .video,
+#screen-share-video-container:has(> .video.active)
+  + #video-container
+  .video
+  video {
+  max-height: 15vh;
+  height: 15vh;
+  min-height: 15vh;
+}
+
+#screen-share-video-container:not(:has(> .video.active)) {
+  display: none;
+}
+
+#screen-share-video-container:not(:has(> .video.active)) + #video-container {
+  width: 100%;
+}
+
+#screen-share-video-container:has(> .video.active) + #video-container {
+  width: 192px;
+  min-width: 192px;
+  max-width: 192px;
+}
+
+#screen-share-video-container:not(:has(> .video.active))
+  + #video-container
+  .video {
+  width: calc(50% - 0.5rem);
+}
+
+.video-chat .video-action-button-container svg {
   stroke: none;
   fill: currentColor;
   height: 24px;
   width: 24px;
 }
 
-.video-chat-container .video-action-button-container button.icon-button {
-  border-radius: 50%;
+.video-chat .video-action-button-container button.icon-button {
   border: none;
   display: flex;
   align-items: center;
@@ -103,15 +132,15 @@
   height: 56px;
 }
 
-.video-chat-container .video-action-button-container {
-  height: 72px;
+.video-chat .video-action-button-container {
+  height: 56px;
   display: flex;
   gap: 1rem;
   align-items: center;
   justify-content: center;
 }
 
-.video-chat-container .video-action-button-container .leave-button {
+.video-chat .video-action-button-container .leave-button {
   background-color: #f50057;
   color: white;
 }

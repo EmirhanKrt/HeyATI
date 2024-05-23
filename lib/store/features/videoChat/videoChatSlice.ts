@@ -53,10 +53,21 @@ export const videoChatSlice = createSlice({
       state.showPreviewType = null;
       state.showPreviewPayload = {};
     },
+    leaveCall: (state) => {
+      state.roomId = null;
+      state.showPreview = false;
+      state.showPreviewType = null;
+      state.showPreviewPayload = {};
+    },
   },
 });
 
-export const { requestedCreateCall, receivedJoinCall, createCall, joinCall } =
-  videoChatSlice.actions;
+export const {
+  requestedCreateCall,
+  receivedJoinCall,
+  createCall,
+  joinCall,
+  leaveCall,
+} = videoChatSlice.actions;
 
 export default videoChatSlice.reducer;

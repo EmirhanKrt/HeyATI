@@ -13,6 +13,7 @@ const ScreenShareButton = () => {
     <button
       className="icon-button"
       onClick={() => dispatch(toggleScreenShare())}
+      style={isScreenSharingActive ? { background: "white" } : {}}
     >
       {isScreenSharingActive ? (
         <svg
@@ -22,7 +23,7 @@ const ScreenShareButton = () => {
           strokeLinecap="round"
           strokeLinejoin="round"
           xmlns="http://www.w3.org/2000/svg"
-          style={{ stroke: "currentcolor", fill: "none" }}
+          style={{ stroke: "black", fill: "none" }}
         >
           <path d="M21 12v3a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10a1 1 0 0 1 1 -1h9"></path>
           <path d="M7 20l10 0"></path>
