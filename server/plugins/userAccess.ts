@@ -57,14 +57,12 @@ export const userAccessPlugin = (app: Elysia) => {
     if (context.params["server_id"] < 1) throw serverIdParamValidationError;
 
     const server = await ServerService.getServer(context.params["server_id"]);
-
     if (!server) throw serverIdParamValidationError;
 
     const serverUser = await ServerService.getServerUserByServerAndUserId(
       (context as ContextWithUser).user.user_id,
       context.params["server_id"]
     );
-
     if (!serverUser)
       throw new ForbiddenError("User cannot access this server.");
 

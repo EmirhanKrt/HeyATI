@@ -41,7 +41,7 @@ const sameUserRoutes = new Elysia({
       message: "Retrived user successfully.",
       data: {
         user: UserService.toSafeUserType(targetUser),
-        server: serverList.map(ServerService.toSafeServerType),
+        server: serverList,
         interactedUsers: interactedUserList.map(UserService.toSafeUserType),
       },
     };

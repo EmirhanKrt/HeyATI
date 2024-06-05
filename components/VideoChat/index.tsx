@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import useAudioAnalyzer from "@/lib/hooks/useAudioAnalyzer";
 import { useMediaStream } from "@/lib/hooks/useMediaStream";
@@ -10,6 +10,7 @@ import {
   removePeerConnectionState,
   updatePeerConnectionState,
 } from "@/lib/store/features/peer/peerSlice";
+import { setFullScreen } from "@/lib/store/features/videoChat/videoChatSlice";
 
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 
@@ -188,6 +189,7 @@ const VideoChat = ({ roomId }: { roomId: string }) => {
           if (peerScreenShareVideoContainer) {
             if (isScreenActive) {
               peerScreenShareVideoContainer.classList.add("active");
+              dispatch(setFullScreen(true));
             } else {
               peerScreenShareVideoContainer.classList.remove("active");
             }

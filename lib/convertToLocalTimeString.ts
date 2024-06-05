@@ -1,7 +1,11 @@
-export const convertToLocalTimeString: (timestamp: string) => string = (
-  timestamp
-) => {
-  const date = new Date(timestamp);
+export const convertToLocalTimeString = (timestamp: string): string => {
+  const utcDate = new Date(timestamp);
+  if (isNaN(utcDate.getTime())) {
+    throw new Error("Invalid timestamp");
+  }
+
+  const timezoneOffset = utcDate.getTimezoneOffset() * 60000;
+  const localDate = new Date(utcDate.getTime() - timezoneOffset);
 
   const timeOptions: Intl.DateTimeFormatOptions = {
     hour: "2-digit",
@@ -9,15 +13,17 @@ export const convertToLocalTimeString: (timestamp: string) => string = (
     hour12: false,
   };
 
-  const formattedTime = date.toLocaleTimeString("en-US", timeOptions);
-
-  return `${formattedTime}`;
+  return localDate.toLocaleTimeString(undefined, timeOptions);
 };
 
-export const convertToLocalDateString: (timestamp: string) => string = (
-  timestamp
-) => {
-  const date = new Date(timestamp);
+export const convertToLocalDateString = (timestamp: string): string => {
+  const utcDate = new Date(timestamp);
+  if (isNaN(utcDate.getTime())) {
+    throw new Error("Invalid timestamp");
+  }
+
+  const timezoneOffset = utcDate.getTimezoneOffset() * 60000;
+  const localDate = new Date(utcDate.getTime() - timezoneOffset);
 
   const dateOptions: Intl.DateTimeFormatOptions = {
     month: "short",
@@ -25,7 +31,5 @@ export const convertToLocalDateString: (timestamp: string) => string = (
     year: "numeric",
   };
 
-  const formattedDate = date.toLocaleDateString("en-US", dateOptions);
-
-  return `${formattedDate}`;
+  return localDate.toLocaleDateString(undefined, dateOptions);
 };

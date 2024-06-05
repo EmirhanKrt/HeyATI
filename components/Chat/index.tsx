@@ -40,14 +40,14 @@ export const Chat = (props: ChatPropType) => {
           padding: 0,
           borderRadius: 4,
           border: "1px solid var(--light-border-color) ",
-          background: "var(--light-background-color)",
+          background: "var(--background-color-5)",
           cursor: "not-allowed",
           gap: 0,
         }}
       >
         <div
           className={styles.chat_message_container}
-          style={{ background: "var(--light-background-color)" }}
+          style={{ background: "var(--background-color-5)" }}
         >
           <Form.FileInput
             placeholder={""}

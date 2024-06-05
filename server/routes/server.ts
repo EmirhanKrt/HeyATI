@@ -22,11 +22,13 @@ export const serverRoutes = new Elysia({
         owner_id: contextWithUser.user.user_id,
       });
 
+      const serverWithData = await ServerService.getServer(server!.server_id);
+
       return {
         success: true,
         message: "Created server succefully.",
         data: {
-          server: ServerService.toSafeServerType(server!),
+          server: serverWithData,
         },
       };
     },
@@ -43,12 +45,12 @@ export const serverRoutes = new Elysia({
     },
     (app) =>
       app
-        .get(`/:${serverTable.server_id.name}`, ({ server }) => {
+        .get(`/:${serverTable.server_id.name}`, async ({ server }) => {
           return {
             success: true,
             message: "Retrived server succefully.",
             data: {
-              server: ServerService.toSafeServerType(server),
+              server: server,
             },
           };
         })
@@ -88,11 +90,15 @@ export const serverRoutes = new Elysia({
               server.server_id
             );
 
+            const serverWithData = await ServerService.getServer(
+              updatedServer!.server_id
+            );
+
             return {
               success: true,
               message: "Updated server succefully.",
               data: {
-                server: ServerService.toSafeServerType(updatedServer),
+                server: serverWithData,
               },
             };
           },
@@ -109,7 +115,7 @@ export const serverRoutes = new Elysia({
             success: true,
             message: "Deleted server successfully.",
             data: {
-              server: ServerService.toSafeServerType(deletedServer),
+              server: deletedServer,
             },
           };
         })

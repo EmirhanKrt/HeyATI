@@ -1,4 +1,4 @@
-import db from "@/server/db";
+/* import db from "@/server/db";
 import { InviteType } from "@/server/models/invite";
 import { serverInviteCodeTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
@@ -45,3 +45,4 @@ export const InviteService = {
     return invite;
   },
 };
+ */

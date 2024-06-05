@@ -6,7 +6,9 @@ import ScreenShareButton from "./ShareScreenButton";
 import LeaveButton from "./LeaveButton";
 
 import "./videoChat.global.css";
-import { useAppDispatch } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import FullScreenButton from "./FullScreenButton";
+import { useEffect, useRef, useState } from "react";
 
 type CreateVideoChatContainerType = {
   containerType: "create_live_chat";
@@ -33,13 +35,75 @@ type VideoChatContainerType = {
 
 const VideoChatContainer = (props: VideoChatContainerType) => {
   const dispatch = useAppDispatch();
+
+  const isFullScreen = useAppSelector((state) => state.videoChat.isFullScreen);
+  const videoChatRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const videoChat = videoChatRef.current;
+
+    const handleTransitionEnd = (e: TransitionEvent) => {
+      if (e.propertyName === "width" || e.propertyName === "height") {
+        if (videoChat && !isFullScreen) {
+          videoChat.style.left = `calc(100% - 300px - 16px)`;
+          videoChat.style.top = `calc(100% - 200px - 16px)`;
+          setTimeout(() => {
+            videoChat.style.setProperty(
+              "transition",
+              "width 0.3s, height 0.3s"
+            );
+          }, 300);
+        }
+      }
+    };
+
+    if (videoChat) {
+      if (isFullScreen) {
+        videoChat.style.left = `0`;
+        videoChat.style.top = `0`;
+        videoChat.style.removeProperty("transition");
+      } else {
+        videoChat.addEventListener("transitionend", handleTransitionEnd);
+        videoChat.addEventListener("mousedown", handleMouseDown);
+      }
+    }
+
+    return () => {
+      if (videoChat) {
+        videoChat.removeEventListener("transitionend", handleTransitionEnd);
+        videoChat.removeEventListener("mousedown", handleMouseDown);
+      }
+    };
+  }, [isFullScreen]);
+
+  const handleMouseDown = (e: MouseEvent) => {
+    const videoChat = videoChatRef.current;
+    if (!videoChat) return;
+
+    const offsetX = e.clientX - videoChat.offsetLeft;
+    const offsetY = e.clientY - videoChat.offsetTop;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      videoChat.style.left = `${e.clientX - offsetX}px`;
+      videoChat.style.top = `${e.clientY - offsetY}px`;
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
   let buttonGroup = <></>;
   switch (props.containerType) {
     case "create_live_chat":
       buttonGroup = (
         <button
           className="primary icon-button"
-          style={{ width: "auto", borderRadius: 7 }}
+          style={{ width: "auto", borderRadius: 7, marginRight: "auto" }}
           onClick={(event) => {
             const wsMessagePayload = {
               operation_type: "create",
@@ -97,6 +161,7 @@ const VideoChatContainer = (props: VideoChatContainerType) => {
               width: "auto",
               borderRadius: 7,
               backgroundColor: "var(--error-background-color)",
+              marginRight: "auto",
             }}
             onClick={(event) => {}}
           >
@@ -119,12 +184,17 @@ const VideoChatContainer = (props: VideoChatContainerType) => {
         <>
           <ScreenShareButton />
           <LeaveButton />
+          <FullScreenButton />
         </>
       );
       break;
   }
+
   return (
-    <div className="video-chat">
+    <div
+      className={`video-chat ${isFullScreen ? "" : "small"}`}
+      ref={videoChatRef}
+    >
       <div className="video-chat-container">{props.children}</div>
       <div className="video-action-button-container">
         <MicrophoneButton />

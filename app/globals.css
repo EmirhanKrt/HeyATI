@@ -4,32 +4,33 @@
     "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
 
   --title-color: #fff;
-  --text-color: #cacaca;
-  --background-color: #181818;
-  --secondary-background-color: #1c1c1c;
-  --light-background-color: #333;
+  --text-color: #c9c9c9;
+  --background-color: #141414;
+  --background-color-2: #1f1f1f;
+  --background-color-3: #242424;
+  --background-color-4: #2e2e2e;
+  --background-color-5: #3b3b3b;
 
-  --primary-color: #ff783a;
-  --primary-color-hovered: #e66932;
-  --primary-color-active: #cc5b2c;
+  --primary-color: #fd7e14;
+  --primary-color-hovered: #f76707;
 
-  --button-border-color: rgba(132, 132, 132, 0.2);
-  --button-hovered-border-color: rgba(132, 132, 132, 0.3);
-  --button-active-border-color: rgba(132, 132, 132, 0.4);
+  --button-border-color: #424242;
+  --button-hovered-border-color: #424242;
 
-  --button-background-color: #151515;
-  --button-hovered-background-color: #1c1c1c;
-  --button-active-background-color: #202020;
+  --button-background-color: #2e2e2e;
+  --button-hovered-background-color: #3b3b3b;
 
-  --input-border-color: rgba(132, 132, 132, 0.2);
-  --input-hovered-border-color: rgba(132, 132, 132, 0.3);
-  --input-active-border-color: rgba(132, 132, 132, 0.4);
+  --input-border-color: #424242;
+  --input-hovered-border-color: var(--primary-color);
 
-  --input-placeholder-color: #4f4f4f;
+  --input-placeholder-color: #696969;
 
-  --input-background-color: #202020;
-  --input-hovered-background-color: #232323;
-  --input-active-background-color: #252525;
+  --input-background-color: #2e2e2e;
+  --input-hovered-background-color: #2e2e2e;
+
+  --input-disabled-background-color: #2e2e2e;
+
+  --input-disabled-color: #828282;
 
   --error-background-color: #ee596f;
 
@@ -89,11 +90,6 @@ button:hover {
   border-color: var(--button-hovered-border-color);
 }
 
-button:active {
-  background-color: var(--button-active-background-color);
-  border-color: var(--button-active-border-color);
-}
-
 button.primary {
   border-color: transparent;
   background-color: var(--primary-color);
@@ -104,11 +100,6 @@ button.primary:hover {
   background-color: var(--primary-color-hovered);
 }
 
-button.primary:active {
-  border-color: transparent;
-  background-color: var(--primary-color-active);
-}
-
 input {
   height: fit-content;
   width: 100%;
@@ -116,24 +107,21 @@ input {
   cursor: text;
   outline: none;
   border: 1px solid var(--input-border-color);
-  color: inherit;
+  color: var(--text-color);
   background-color: var(--input-background-color);
   transition: 0.2s ease-in;
 }
 
 input:not(:disabled):hover,
-input:not(:disabled)focus {
+input:not(:disabled):focus {
   border-color: var(--input-hovered-border-color);
   background-color: var(--input-hovered-background-color);
 }
 
-input:not(:disabled):active {
-  border-color: var(--input-active-border-color);
-  background-color: var(--input-active-background-color);
-}
-
 input:disabled {
-  background-color: var(--button-background-color);
+  background-color: var(--input-disabled-background-color);
+  color: var(--input-disabled-color);
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -164,7 +152,6 @@ h3,
 h4,
 h5,
 label,
-input,
 a {
   color: var(--title-color);
 }

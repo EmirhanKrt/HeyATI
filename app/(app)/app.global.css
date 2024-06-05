@@ -3,61 +3,31 @@ main {
   height: 100vh;
 }
 
-.app-header {
-  display: flex;
-  padding: 8px;
-  border-bottom: 1px solid var(--light-background-color);
-}
-
-.app-header-title {
-  display: flex;
-  width: 230px;
-  min-width: 230px;
-  gap: 8px;
-}
-
-.app-header .app-header-title h4 {
-  padding: 0 8px;
-  border-left: 1px solid var(--light-background-color);
-  line-height: 30px;
-  height: 30px;
-  width: 100%;
-}
-
-.app-header .app-header-search {
-  width: calc(100% - 230px - 230px);
-  border-left: 1px solid var(--light-background-color);
-  border-right: 1px solid var(--light-background-color);
-  padding: 0 24px;
-}
-
-.app-header .app-header-search input {
-  border-radius: 8px;
-  height: 30px;
-}
-
-.app-header .app-header-notification {
-  display: flex;
-  flex-direction: row-reverse;
-  width: 230px;
-  min-width: 230px;
-  gap: 10px;
-}
-
 .panel-container {
+  width: 100%;
   display: flex;
   overflow: hidden;
 }
 
 .panel {
-  height: calc(100vh - var(--header-height));
   transition: 0.3s ease;
 }
 
+.server-panel-navigation {
+  width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: 200ms linear;
+  padding: 12px;
+  gap: 8px;
+}
+
 .navigation-panel {
-  width: 238px;
+  width: 240px;
   display: flex;
   flex-direction: row;
+  background: var(--background-color-2);
 }
 
 .navigation-panel-navigation {
@@ -73,7 +43,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 8px;
+  align-items: center;
 }
 
 .navigation-panel-server-navigation-list::-webkit-scrollbar {
@@ -85,11 +55,11 @@ main {
   border-radius: 7px;
   border: none;
   outline: none;
-  background-color: var(--light-background-color);
-  min-width: 30px;
-  width: 30px;
-  min-height: 30px;
-  height: 30px;
+  background-color: var(--background-color-3);
+  min-width: 48px;
+  width: 48px;
+  min-height: 48px;
+  height: 48px;
   cursor: pointer;
   transition: 0.3s ease-in-out;
   list-style-type: none;
@@ -97,16 +67,16 @@ main {
 
 .navigation-panel-server-navigation-list-item.active,
 .navigation-panel-server-navigation-list-item:hover {
-  outline: 2px solid rgba(255, 120, 58, 0.5);
   background-color: var(--primary-color);
 }
 
 .navigation-panel-server-navigation-list-item > a {
-  display: inline-block;
-  line-height: 30px;
+  display: flex;
   text-align: center;
   width: 100%;
   height: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 .navigation-panel-server-navigation-list-item-tooltip {
@@ -136,9 +106,20 @@ main {
 .navigation-subpanel-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  border-left: 1px solid var(--light-background-color);
+  gap: 12px;
+  width: 240px;
+}
+
+.navigation-header {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0 10px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 0 hsl(0 calc(1 * 0%) 0.8% / 0.2),
+    0 1.5px 0 hsl(240 calc(1 * 7.7%) 2.5% / 0.05),
+    0 2px 0 hsl(0 calc(1 * 0%) 0.8% / 0.05);
 }
 
 .navigation-panel-subpanel-navigation-list {
@@ -146,7 +127,7 @@ main {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
 
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -155,9 +136,8 @@ main {
 .navigation-panel-subpanel-navigation-list-item {
   text-indent: 10px;
   display: flex;
-  flex-direction: row-reverse;
   align-items: center;
-  height: 30px;
+  height: 42px;
   cursor: pointer;
 }
 
@@ -165,6 +145,8 @@ main {
   color: inherit;
   font-size: inherit;
   width: 100%;
+  height: 100%;
+  line-height: 42px;
 }
 
 .navigation-panel-subpanel-navigation-list-item:hover,
@@ -177,18 +159,18 @@ main {
   );
 }
 
-.navigation-panel-subpanel-navigation-list-item::before {
+.navigation-panel-subpanel-navigation-list-item::after {
   content: "";
   right: 0;
   top: 18px;
   width: 3px;
-  height: 36px;
+  height: 42px;
   background-color: white;
   display: none;
 }
 
-.navigation-panel-subpanel-navigation-list-item:hover::before,
-.navigation-panel-subpanel-navigation-list-item.active::before {
+.navigation-panel-subpanel-navigation-list-item:hover::after,
+.navigation-panel-subpanel-navigation-list-item.active::after {
   display: inline-block;
 }
 
@@ -196,8 +178,7 @@ main {
   display: flex;
   gap: 8px;
   flex-direction: column;
-  padding: 8px;
-  border-top: 1px solid var(--light-background-color);
+  padding: 10px;
   overflow: auto;
 }
 
@@ -218,7 +199,7 @@ main {
 .navigation-subpanel-content-container ul li:active,
 .navigation-subpanel-content-container ul li.active,
 .navigation-subpanel-content-container ul li:hover {
-  background-color: var(--light-background-color);
+  background-color: var(--background-color-5);
 }
 
 .navigation-subpanel-content-container ul li a {
@@ -228,32 +209,95 @@ main {
   height: 100%;
 }
 
-.navigation-subpanel-content-container ul li a > span {
-  display: inline-flex;
-  height: 24px;
-  min-width: 24px;
-  max-width: 24px;
-  border-radius: 4px;
-  justify-content: center;
+.avatar {
+  min-width: 30px;
+  max-width: 30px;
+  width: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  height: 30px;
+  text-align: center;
+  vertical-align: middle;
   align-items: center;
+  justify-content: center;
+  display: flex;
+  border-radius: 4px;
+  color: var(--title-color);
 }
 
-.navigation-subpanel-content-container ul li a > div {
+.user-profile-list-container {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.user-profile-list-container > span {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  position: relative;
+  color: var(--title-color);
+}
+
+.user-profile-list-container > span.username {
+  color: var(--text-color);
+  font-size: 12px;
+}
+
+.settings-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32.5px;
+  min-height: 32.5px;
+  width: 32.5px;
+  height: 32.5px;
+  cursor: pointer;
+  border-radius: 7px;
+}
+
+.settings-icon-container:hover {
+  background-color: var(--background-color-5);
+}
+
+.app-panel-container {
   display: flex;
   flex-direction: column;
   width: 100%;
+  flex-grow: 1;
 }
 
-.details-panel {
-  width: 238px;
+.app-panel-header {
+  background-color: var(--background-color-3);
+  height: 48px;
+  padding: 8px;
+  line-height: 32px;
+  color: var(--title-color);
+  box-shadow: 0 1px 0 hsl(0 calc(1 * 0%) 0.8% / 0.2),
+    0 1.5px 0 hsl(240 calc(1 * 7.7%) 2.5% / 0.05),
+    0 2px 0 hsl(0 calc(1 * 0%) 0.8% / 0.05);
+  z-index: 1;
+}
+
+.app-panel-content-container {
+  display: flex;
+  flex-grow: 1;
+  overflow: auto;
 }
 
 .app-panel {
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--light-background-color);
-  border-right: 1px solid var(--light-background-color);
-  width: calc(100% - 238px - 238px);
+  flex-grow: 1;
+  background: var(--background-color-3);
+}
+
+.details-panel {
+  width: 240px;
+  background: var(--background-color-2);
 }
 
 .message-date-separator {
@@ -288,11 +332,11 @@ main {
 }
 
 .chat-message-container::-webkit-scrollbar-track {
-  background: var(--secondary-background-color);
+  background: var(--background-color-2);
 }
 
 .chat-message-container::-webkit-scrollbar-thumb {
-  background: var(--light-background-color);
+  background: var(--background-color-5);
 }
 
 .chat-message-grouped-date-container {
@@ -314,7 +358,7 @@ main {
 
 .message-content-and-file-container:hover .message-content,
 .message-content-and-file-container:hover .message-file-container {
-  background-color: var(--light-background-color);
+  background-color: var(--background-color-5);
 }
 
 .message-container-avatar {
@@ -376,13 +420,25 @@ main {
   text-decoration: underline !important;
 }
 
-.user-details {
+.details {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 8px;
   justify-content: space-between;
+}
+
+.details::-webkit-scrollbar {
+  width: 3px;
+}
+
+.details::-webkit-scrollbar-track {
+  background: var(--background-color-2);
+}
+
+.details::-webkit-scrollbar-thumb {
+  background: var(--background-color-5);
 }
 
 .overlay {
@@ -400,7 +456,7 @@ main {
 }
 
 .popup {
-  background-color: var(--secondary-background-color);
+  background-color: var(--background-color-2);
   padding: 20px;
   border-radius: 10px;
   position: relative;
@@ -461,6 +517,7 @@ main {
 
 .spinner .path.primary {
   stroke: var(--primary-color);
+  color: var(--title-color);
 }
 
 @keyframes rotate {

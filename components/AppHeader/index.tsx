@@ -3,7 +3,7 @@ import Link from "next/link";
 export const AppHeader = ({
   pageTitle,
 }: {
-  pageTitle: "Private Message" | "Dashboard" | "Server";
+  pageTitle: "Private Message" | "Dashboard" | "Server" | "Channel";
 }) => {
   let isHomeButtonActive = false;
 

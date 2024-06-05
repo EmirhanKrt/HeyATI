@@ -50,7 +50,13 @@ const createLayout = ({ type }: LayoutOptions) => {
             server={fetchUserRequest.data.data.server}
             interactedUsers={fetchUserRequest.data.data.interactedUsers}
           >
-            <main>
+            <main
+              style={{
+                position: "relative",
+                overflow: "hidden",
+                display: "flex",
+              }}
+            >
               {children}
               <WebSocketConnection />
               <VideoChatConditionalPreviewRenderer />

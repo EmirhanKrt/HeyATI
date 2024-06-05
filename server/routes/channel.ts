@@ -2,8 +2,10 @@ import Elysia from "elysia";
 import { channelTable } from "@/server/db/schema";
 import { ChannelUpdatePayloadType, channelModel } from "@/server/models";
 import { ContextWithUser } from "@/server/types";
-import { ChannelService, ServerService } from "@/server/services";
-import { BodyValidationError, ParamsValidationError } from "@/server/errors";
+import { ChannelService } from "@/server/services";
+import { BodyValidationError } from "@/server/errors";
+import { channelMessageRoutes } from "./channelMessage";
+import { channelPlugin } from "../plugins";
 
 const getChannelsRoute = new Elysia({
   name: "get-channels-route",
@@ -34,7 +36,7 @@ const channelIndexRoutes = new Elysia({
 })
   .use(channelModel)
   .post(
-    "/",
+    "",
     async (context) => {
       const contextWithUser = context as ContextWithUser;
 
@@ -58,29 +60,15 @@ const channelIndexRoutes = new Elysia({
       params: "channel.server_id.request.params",
     }
   )
+  .use(channelPlugin)
   .get(
     `/:${channelTable.channel_id.name}`,
-    async ({ params: { channel_id, server_id } }) => {
-      const matchedChannel = await ChannelService.getChannel(channel_id);
-      const matchedServer = await ServerService.getServer(server_id);
-
-      if (!matchedChannel) {
-        throw new ParamsValidationError(
-          [{ path: "channel_id", message: "Invalid value." }],
-          "Channel not found."
-        );
-      }
-      if (!matchedServer) {
-        throw new ParamsValidationError(
-          [{ path: "server_id", message: "Invalid value." }],
-          "Server not found."
-        );
-      }
+    async (context) => {
       return {
         success: true,
         message: "Retrived channel successfully.",
         data: {
-          channel: ChannelService.toSafeChannelType(matchedChannel),
+          channel: ChannelService.toSafeChannelType(context.channel),
         },
       };
     },
@@ -91,11 +79,11 @@ const channelIndexRoutes = new Elysia({
   )
   .put(
     `/:${channelTable.channel_id.name}`,
-    async ({ body, params: { channel_id } }) => {
+    async ({ body, channel }) => {
       if (!Object.keys(body).length)
         throw new BodyValidationError(
           [{ path: "channel_name", message: "Invalid value." }],
-          "For update the channel details, channel name  must be provided."
+          "For update the channel details, channel name must be provided."
         );
 
       const updatePayload = {
@@ -104,7 +92,7 @@ const channelIndexRoutes = new Elysia({
 
       const updatedChannel = await ChannelService.updateChannel(
         updatePayload,
-        channel_id
+        channel.channel_id
       );
 
       return {
@@ -123,8 +111,10 @@ const channelIndexRoutes = new Elysia({
   )
   .delete(
     `/:${channelTable.channel_id.name}`,
-    async ({ params: { channel_id } }) => {
-      const deletedChannel = await ChannelService.deleteChannel(channel_id);
+    async ({ channel }) => {
+      const deletedChannel = await ChannelService.deleteChannel(
+        channel.channel_id
+      );
 
       return {
         success: true,
@@ -145,4 +135,5 @@ export const channelRoutes = new Elysia({
   prefix: `/server/:server_id`,
 })
   .use(channelIndexRoutes)
-  .use(getChannelsRoute);
+  .use(getChannelsRoute)
+  .use(channelMessageRoutes);

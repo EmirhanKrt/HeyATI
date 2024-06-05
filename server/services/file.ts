@@ -1,7 +1,11 @@
 import { unlink } from "node:fs/promises";
 import { eq, inArray, sql } from "drizzle-orm";
 import db from "@/server/db";
-import { fileTable, privateMessageFileTable } from "@/server/db/schema";
+import {
+  channelMessageFileTable,
+  fileTable,
+  privateMessageFileTable,
+} from "@/server/db/schema";
 import { FileInsertPayloadType, FileType, SafeFileType } from "@/server/models";
 
 export abstract class FileService {
@@ -58,6 +62,20 @@ export abstract class FileService {
   ) {
     const files = await db
       .insert(privateMessageFileTable)
+      .values(messageFileMapped)
+      .returning();
+
+    return files;
+  }
+
+  static async mapWithChannelMessage(
+    messageFileMapped: {
+      file_id: number;
+      channel_message_id: number | null;
+    }[]
+  ) {
+    const files = await db
+      .insert(channelMessageFileTable)
       .values(messageFileMapped)
       .returning();
 

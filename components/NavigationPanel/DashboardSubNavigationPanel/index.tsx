@@ -1,8 +1,9 @@
 "use client";
 
-import { selectColor } from "@/lib/generateBackgroundColorByUserName";
+import Avatar from "@/components/Avatar";
 import { useAppSelector } from "@/lib/store/hooks";
 import Link from "next/link";
+import UserAvatar from "../ServerNavigationPanel/UserAvatar";
 
 const DashboardSubNavigationPanel = ({
   active_user_name,
@@ -15,10 +16,17 @@ const DashboardSubNavigationPanel = ({
 
   return (
     <section className="navigation-subpanel-container">
-      <nav
-        className="navigation-panel-navigation"
-        style={{ paddingTop: "8px" }}
-      >
+      <div className="navigation-header">
+        <input
+          type="text"
+          placeholder="Find or start chat"
+          style={{
+            height: 28,
+            padding: "1px 6px",
+          }}
+        />
+      </div>
+      <nav className="navigation-panel-navigation">
         <ul className="navigation-panel-subpanel-navigation-list">
           <li
             className={`navigation-panel-subpanel-navigation-list-item ${
@@ -29,8 +37,11 @@ const DashboardSubNavigationPanel = ({
           </li>
         </ul>
       </nav>
-      <div className="navigation-subpanel-content-container">
-        <span>Private Messages</span>
+      <div
+        className="navigation-subpanel-content-container"
+        style={{ flexGrow: 1 }}
+      >
+        <span style={{ color: "var(--title-color)" }}>Private Messages</span>
 
         <ul>
           {interactedUserList.order.map((userName) => {
@@ -46,21 +57,9 @@ const DashboardSubNavigationPanel = ({
             return (
               <li key={user.user_id} {...liAttributes}>
                 <Link href={`/user/${user.user_name}`}>
-                  <span
-                    style={{ backgroundColor: selectColor(user.user_name) }}
-                  >
-                    {user.first_name[0]}
-                    {user.last_name[0]}
-                  </span>
-                  <div>
-                    <span
-                      style={{
-                        color: "var(--text-color)",
-                        fontSize: "12px",
-                      }}
-                    >
-                      @{user.user_name}
-                    </span>
+                  <Avatar user={user} />
+                  <div className="user-profile-list-container">
+                    <span className="username">@{user.user_name}</span>
                     <span>
                       {user.first_name} {user.last_name}
                     </span>
@@ -71,6 +70,7 @@ const DashboardSubNavigationPanel = ({
           })}
         </ul>
       </div>
+      <UserAvatar />
     </section>
   );
 };

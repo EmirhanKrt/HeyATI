@@ -1,21 +1,24 @@
 import NavigationPanel from "@/components/NavigationPanel";
 
 import { AppPanel } from "@/components/AppPanel";
-import { DetailsPanel } from "@/components/DetailsPanel";
-import { AppHeader } from "@/components/AppHeader";
+import ServerNavigationPanel from "@/components/NavigationPanel/ServerNavigationPanel";
+import { AppContentPanel } from "@/components/AppContentPanel";
 
 const Dashboard = () => {
   return (
     <>
-      <AppHeader pageTitle="Dashboard" />
+      <ServerNavigationPanel />
       <section className="panel-container">
         <NavigationPanel type="dashboard" />
-        <AppPanel>
-          <>Calendar will be rendered here</>
-        </AppPanel>
-        <DetailsPanel>
-          <></>
-        </DetailsPanel>
+
+        <AppContentPanel>
+          <AppContentPanel.Header>Dashboard</AppContentPanel.Header>
+          <AppContentPanel.Container>
+            <AppPanel>
+              <>Calendar will be rendered here</>
+            </AppPanel>
+          </AppContentPanel.Container>
+        </AppContentPanel>
       </section>
     </>
   );

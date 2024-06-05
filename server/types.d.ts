@@ -1,5 +1,10 @@
 import { Context } from "elysia";
-import { JWTPayloadType } from "@/server/models";
+import {
+  JWTPayloadType,
+  SafeChannelType,
+  SafeEventType,
+  SafeServerType,
+} from "@/server/models";
 
 export type ValidationErrorPayload = {
   path: string;

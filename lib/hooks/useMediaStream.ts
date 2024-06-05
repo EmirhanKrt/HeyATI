@@ -18,7 +18,10 @@ export const useMediaStream = () => {
 
     const context = canvas.getContext("2d");
 
-    if (context) context.fillRect(0, 0, 100, 100);
+    if (context) {
+      context.fillStyle = "#151515";
+      context.fillRect(0, 0, 100, 100);
+    }
 
     const stream = canvas.captureStream();
     const track = stream.getVideoTracks()[0];

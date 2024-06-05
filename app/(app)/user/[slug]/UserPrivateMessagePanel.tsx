@@ -180,7 +180,7 @@ const FilePreviewer = ({
       key={file.file_id}
       style={{
         padding: 10,
-        background: "var(--secondary-background-color)",
+        background: "var(--background-color-2)",
         border: "2px solid var(--input-border-color)",
         display: "flex",
         gap: 10,

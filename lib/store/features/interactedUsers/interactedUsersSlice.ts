@@ -1,14 +1,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import {
-  MessagesGroupedByDateType,
+  PrivateMessagesGroupedByDateType,
   PrivateMessageSuccessResponseBodyDataType,
   SafeUserType,
 } from "@/server/models";
 import { convertToLocalDateString } from "@/lib/convertToLocalTimeString";
 
 export type InteractedUserWithPrivateMessagesType = SafeUserType & {
-  messages: MessagesGroupedByDateType;
+  messages: PrivateMessagesGroupedByDateType;
   isNotInteracted?: boolean;
 };
 
@@ -103,7 +103,7 @@ export const interactedUsersSlice = createSlice({
 
       const newMessagesGrouped = action.payload.messages.reduce(
         (
-          acc: MessagesGroupedByDateType,
+          acc: PrivateMessagesGroupedByDateType,
           message: PrivateMessageSuccessResponseBodyDataType
         ) => {
           const date = convertToLocalDateString(message.created_at);
@@ -136,9 +136,14 @@ export const interactedUsersSlice = createSlice({
             action.payload.message
           );
         } else {
-          newState.users[action.payload.user_name].messages[date] = [
-            action.payload.message,
-          ];
+          const entries = Object.entries(
+            newState.users[action.payload.user_name].messages
+          );
+
+          entries.push([date, [action.payload.message]]);
+
+          newState.users[action.payload.user_name].messages =
+            Object.fromEntries(entries);
         }
       } else {
         newState.users[action.payload.user_name].messages = {
@@ -210,6 +215,11 @@ export const interactedUsersSlice = createSlice({
                 message.private_message_id !==
                 action.payload.message.private_message_id
             );
+
+          if (
+            newState.users[action.payload.user_name].messages[date].length === 0
+          )
+            delete newState.users[action.payload.user_name].messages[date];
         }
       }
 

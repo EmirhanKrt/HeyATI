@@ -8,7 +8,7 @@
   padding: 40px;
   width: 100%;
   height: min-content;
-  background-color: var(--secondary-background-color);
+  background-color: var(--background-color-2);
 }
 
 .form_body {
@@ -106,7 +106,7 @@
 }
 
 .form_textarea:disabled {
-  background-color: var(--light-background-color);
+  background-color: var(--background-color-5);
   cursor: not-allowed;
 }
 

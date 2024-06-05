@@ -13,7 +13,11 @@ const MicrophoneButton = () => {
     <button
       className="icon-button"
       onClick={() => dispatch(toggleMicrophone())}
-      style={isMicrophoneActive ? { background: "white" } : {}}
+      style={
+        isMicrophoneActive
+          ? { background: "white", marginLeft: "auto" }
+          : { marginLeft: "auto" }
+      }
     >
       {isMicrophoneActive ? (
         <svg

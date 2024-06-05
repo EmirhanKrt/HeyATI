@@ -12,7 +12,7 @@ const schemaRules = {
 
 const eventSelectSchema = createSelectSchema(eventTable, schemaRules);
 
-const eventSelectSchemaWithoutSensitiveData = t.Omit(eventSelectSchema, [
+export const eventSelectSchemaWithoutSensitiveData = t.Omit(eventSelectSchema, [
   "updated_at",
 ]);
 

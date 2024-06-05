@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Provider } from "react-redux";
-import { SafeServerType, SafeUserType } from "@/server/models";
+import { SafeUserType, ServerDetailedDataType } from "@/server/models";
 import { makeStore, AppStore } from "./store";
 import { initializeUser } from "./features/user/userSlice";
 import { initializeServer } from "./features/server/serverSlice";
@@ -16,7 +16,7 @@ export default function StoreProvider({
 }: {
   children: React.ReactNode;
   user: SafeUserType;
-  server?: SafeServerType[];
+  server?: ServerDetailedDataType[];
   interactedUsers?: SafeUserType[];
 }) {
   const storeRef = useRef<AppStore>();

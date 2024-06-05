@@ -66,7 +66,10 @@ const eventIndexRoutes = new Elysia({
     async ({ params: { channel_id, server_id, event_id } }) => {
       const matchedEvent = await EventService.getEvent(event_id);
       const matchedServer = await ServerService.getServer(server_id);
-      const matchedChannel = await ChannelService.getChannel(channel_id);
+      const matchedChannel = await ChannelService.getChannel(
+        server_id,
+        channel_id
+      );
 
       if (!matchedChannel) {
         throw new ParamsValidationError(

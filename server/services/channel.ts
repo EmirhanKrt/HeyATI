@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import db from "@/server/db";
 import { channelTable } from "@/server/db/schema";
 import {
@@ -20,11 +20,19 @@ export abstract class ChannelService {
     return channelList[0];
   }
 
-  static async getChannel(channel_id: number): Promise<ChannelType> {
+  static async getChannel(
+    server_id: number,
+    channel_id: number
+  ): Promise<ChannelType> {
     const channelList = await db
       .select()
       .from(channelTable)
-      .where(eq(channelTable.channel_id, channel_id));
+      .where(
+        and(
+          eq(channelTable.server_id, server_id),
+          eq(channelTable.channel_id, channel_id)
+        )
+      );
 
     return channelList[0];
   }

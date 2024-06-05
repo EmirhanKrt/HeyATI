@@ -9,7 +9,7 @@ const schemaRules = {
 
 const channelSelectSchema = createSelectSchema(channelTable, schemaRules);
 
-const channelSelectSchemaWithoutSensitiveData = t.Omit(channelSelectSchema, [
+export const channelSelectSchemaWithoutSensitiveData = t.Omit(channelSelectSchema, [
   "updated_at",
 ]);
 

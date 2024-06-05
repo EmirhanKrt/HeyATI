@@ -13,7 +13,7 @@ export const LoadingCircle = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width: "100%",
+        width: "inherit",
         height: "100%",
         color: "var(--title-color)",
       }}

@@ -67,7 +67,7 @@ export type PrivateMessageSuccessResponseBodyDataType = Static<
   typeof privateMessageSuccessResponseBodyDataSchema
 >;
 
-export type MessagesGroupedByDateType = {
+export type PrivateMessagesGroupedByDateType = {
   [key: string]: PrivateMessageSuccessResponseBodyDataType[];
 };
 

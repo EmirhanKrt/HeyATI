@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { LoadingCircle } from "@/components/LoadingCircle";
-import VideoChatPreview from "@/components/VideoChat/VideoChatPreview";
-import { selectColor } from "@/lib/generateBackgroundColorByUserName";
 import { InteractedUserWithPrivateMessagesType } from "@/lib/store/features/interactedUsers/interactedUsersSlice";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { requestedCreateCall } from "@/lib/store/features/videoChat/videoChatSlice";
+import Avatar from "@/components/Avatar";
 
 const UserDetailsPanel = ({
   isUserFound,
@@ -23,7 +21,7 @@ const UserDetailsPanel = ({
   };
 
   if (isLoading) {
-    return <LoadingCircle />;
+    return <LoadingCircle width={32} height={32} />;
   }
 
   let container;
@@ -35,65 +33,33 @@ const UserDetailsPanel = ({
       </span>
     );
   } else {
-    const userFirstNameAndLastNameFirstCharacterMerged =
-      targetUser.first_name[0].toUpperCase() +
-      targetUser.last_name[0].toUpperCase();
-
     const userFullName = targetUser.first_name + " " + targetUser.last_name;
 
     container = (
-      <>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 16,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: selectColor(targetUser.user_name),
-              display: "flex",
-              padding: 0,
-              alignItems: "center",
-              justifyContent: "center",
-              width: "96px",
-              minWidth: "96px",
-              maxWidth: "96px",
-              height: "96px",
-              minHeight: "96px",
-              maxHeight: "96px",
-              color: "var(--title-color)",
-              fontSize: 36,
-            }}
-            className="navigation-panel-server-navigation-list-item"
-          >
-            {userFirstNameAndLastNameFirstCharacterMerged}
-          </div>
-          <div>
-            <h3>{userFullName}</h3>
-            <p>
-              Username:{" "}
-              <span style={{ color: "var(--title-color)" }}>
-                {targetUser.user_name}
-              </span>
-            </p>
-            <p>
-              Email:{" "}
-              <span style={{ color: "var(--title-color)" }}>
-                {targetUser.user_email}
-              </span>
-            </p>
-          </div>
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+        }}
+      >
+        <Avatar user={targetUser} />
+        <div className="user-profile-list-container" style={{ flexGrow: 1 }}>
+          <span className="username">@{targetUser.user_name}</span>
+          <span style={{ color: "var(--title-color)" }}>{userFullName}</span>
         </div>
-        <button className="primary" onClick={onClick}>
+
+        <button
+          className="primary"
+          onClick={onClick}
+          style={{ width: "auto", height: 32, padding: "0 8px" }}
+        >
           Call
         </button>
-      </>
+      </div>
     );
   }
 
-  return <div className="user-details">{container}</div>;
+  return container;
 };
 
 export default UserDetailsPanel;

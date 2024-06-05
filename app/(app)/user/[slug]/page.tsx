@@ -1,8 +1,6 @@
 "use client";
 
 import NavigationPanel from "@/components/NavigationPanel";
-import { DetailsPanel } from "@/components/DetailsPanel";
-import { AppHeader } from "@/components/AppHeader";
 
 import UserPrivateMessagePanel from "./UserPrivateMessagePanel";
 import UserDetailsPanel from "./UserDetailsPanel";
@@ -10,6 +8,8 @@ import useUserDetails from "@/lib/hooks/useUserDetails";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/store/hooks";
 import { AppPanel } from "@/components/AppPanel";
+import ServerNavigationPanel from "@/components/NavigationPanel/ServerNavigationPanel";
+import { AppContentPanel } from "@/components/AppContentPanel";
 
 const UserPrivateMessagePage = ({ params }: { params: { slug: string } }) => {
   const user_name = params.slug;
@@ -35,31 +35,36 @@ const UserPrivateMessagePage = ({ params }: { params: { slug: string } }) => {
 
   const style = isLoading
     ? {
-        backgroundColor: "#111",
+        backgroundColor: "var(--background-color)",
       }
-    : { backgroundColor: "var(--background-color)" };
+    : { backgroundColor: "var(--background-color-3)" };
 
   return (
     <>
-      <AppHeader pageTitle="Private Message" />
+      <ServerNavigationPanel />
       <section className="panel-container">
         <NavigationPanel type={"user"} active_user_name={params.slug} />
 
-        <AppPanel style={style}>
-          <UserPrivateMessagePanel
-            isUserFound={isUserFound}
-            isLoading={isLoading}
-            targetUser={targetUser}
-          />
-        </AppPanel>
-
-        <DetailsPanel style={style}>
-          <UserDetailsPanel
-            isUserFound={isUserFound}
-            isLoading={isLoading}
-            targetUser={targetUser}
-          />
-        </DetailsPanel>
+        <AppContentPanel>
+          <AppContentPanel.Header style={style}>
+            <div>
+              <UserDetailsPanel
+                isUserFound={isUserFound}
+                isLoading={isLoading}
+                targetUser={targetUser}
+              />
+            </div>
+          </AppContentPanel.Header>
+          <AppContentPanel.Container>
+            <AppPanel style={style}>
+              <UserPrivateMessagePanel
+                isUserFound={isUserFound}
+                isLoading={isLoading}
+                targetUser={targetUser}
+              />
+            </AppPanel>
+          </AppContentPanel.Container>
+        </AppContentPanel>
       </section>
     </>
   );

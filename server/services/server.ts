@@ -8,6 +8,7 @@ import {
 } from "@/server/db/schema";
 import {
   SafeServerType,
+  ServerDetailedDataType,
   ServerInsertPayloadType,
   ServerType,
   ServerUpdatePayloadType,
@@ -23,13 +24,77 @@ export abstract class ServerService {
     return serverList[0];
   }
 
-  static async getServer(server_id: number): Promise<ServerType> {
+  static async getServer(server_id: number): Promise<ServerDetailedDataType> {
     const serverList = await db
-      .select()
-      .from(serverTable)
-      .where(eq(serverTable.server_id, server_id));
+      .select({
+        server_id: serverTable.server_id,
+        server_name: serverTable.server_name,
+        server_description: serverTable.server_description,
+        owner_id: serverTable.owner_id,
+        created_at: serverTable.created_at,
 
-    return serverList[0];
+        users: sql`
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'user_id', public."User".user_id,
+                'user_name', public."User".user_name,
+                'first_name', public."User".first_name,
+                'last_name', public."User".last_name,
+                'role', public."ServerUser".role
+              )
+            ) FILTER (
+              WHERE public."User".user_name IS NOT NULL
+            ),
+            '[]'::JSON
+          ) AS users`,
+
+        channels: sql`
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'channel_id', public."Channel".channel_id,
+                'channel_name', public."Channel".channel_name,
+                'server_id', public."Channel".server_id,
+                'owner_id', public."Channel".owner_id,
+                'created_at', public."Channel".created_at,
+
+                'events', COALESCE(
+                  (
+                    SELECT json_agg(
+                      json_build_object(
+                        'event_id', e.event_id,
+                        'event_title', e.event_title,
+                        'event_description', e.event_description,
+                        'owner_id', e.owner_id,
+                        'event_start_date', e.event_start_date,
+                        'event_finish_date', e.event_finish_date,
+                        'created_at', e.created_at
+                      )
+                    )
+                    FROM public."Event" e
+                    WHERE e.channel_id = public."Channel".channel_id
+                  ),
+                  '[]'::JSON
+                )
+              )
+            ) FILTER (
+              WHERE public."Channel".channel_id IS NOT NULL
+            ),
+            '[]'::JSON
+          ) AS channels`,
+      })
+      .from(serverTable)
+      .leftJoin(channelTable, eq(channelTable.server_id, serverTable.server_id))
+      .leftJoin(
+        serverUserTable,
+        eq(serverUserTable.server_id, serverTable.server_id)
+      )
+      .leftJoin(userTable, eq(userTable.user_id, serverUserTable.user_id))
+      .where(eq(serverTable.server_id, server_id))
+      .groupBy(serverTable.server_id);
+
+    return serverList[0] as ServerDetailedDataType;
   }
 
   static async updateServer(
@@ -45,13 +110,16 @@ export abstract class ServerService {
     return serverList[0];
   }
 
-  static async deleteServer(server_id: number): Promise<ServerType> {
-    const serverList = await db
-      .delete(serverTable)
-      .where(eq(serverTable.server_id, server_id))
-      .returning();
+  static async deleteServer(
+    server_id: number
+  ): Promise<ServerDetailedDataType> {
+    const server = await ServerService.getServer(server_id);
 
-    return serverList[0];
+    if (server) {
+      await db.delete(serverTable).where(eq(serverTable.server_id, server_id));
+    }
+
+    return server;
   }
 
   static async getServerUserByServerAndUserId(
@@ -75,29 +143,81 @@ export abstract class ServerService {
     return null;
   }
 
-  static async getServerListByUserId(user_id: number) {
+  static async getServerListByUserId(
+    user_id: number
+  ): Promise<ServerDetailedDataType[]> {
     const serverList = await db
       .select({
         server_id: serverTable.server_id,
         server_name: serverTable.server_name,
         server_description: serverTable.server_description,
         owner_id: serverTable.owner_id,
-        updated_at: serverTable.updated_at,
         created_at: serverTable.created_at,
+
+        users: sql`
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'user_id', public."User".user_id,
+                'user_name', public."User".user_name,
+                'first_name', public."User".first_name,
+                'last_name', public."User".last_name,
+                'role', public."ServerUser".role
+              )
+            ) FILTER (
+              WHERE public."User".user_name IS NOT NULL
+            ),
+            '[]'::JSON
+          ) AS users`,
+
+        channels: sql`
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'channel_id', public."Channel".channel_id,
+                'channel_name', public."Channel".channel_name,
+                'server_id', public."Channel".server_id,
+                'owner_id', public."Channel".owner_id,
+                'created_at', public."Channel".created_at,
+
+                'events', COALESCE(
+                  (
+                    SELECT json_agg(
+                      json_build_object(
+                        'event_id', e.event_id,
+                        'event_title', e.event_title,
+                        'event_description', e.event_description,
+                        'owner_id', e.owner_id,
+                        'event_start_date', e.event_start_date,
+                        'event_finish_date', e.event_finish_date,
+                        'created_at', e.created_at
+                      )
+                    )
+                    FROM public."Event" e
+                    WHERE e.channel_id = public."Channel".channel_id
+                  ),
+                  '[]'::JSON
+                ),
+                
+                'messages', '{}'::JSON
+              )
+            ) FILTER (
+              WHERE public."Channel".channel_id IS NOT NULL
+            ),
+            '[]'::JSON
+          ) AS channels`,
       })
-      .from(serverUserTable)
-      .innerJoin(
-        serverTable,
+      .from(serverTable)
+      .leftJoin(channelTable, eq(channelTable.server_id, serverTable.server_id))
+      .leftJoin(
+        serverUserTable,
         eq(serverUserTable.server_id, serverTable.server_id)
       )
-      .where(
-        and(
-          eq(serverUserTable.user_id, user_id),
-          eq(serverUserTable.is_user_active, true)
-        )
-      );
+      .leftJoin(userTable, eq(userTable.user_id, serverUserTable.user_id))
+      .where(eq(userTable.user_id, user_id))
+      .groupBy(serverTable.server_id);
 
-    return serverList;
+    return serverList as ServerDetailedDataType[];
   }
 
   static async getInitialServerDataForWebsocketManager() {
