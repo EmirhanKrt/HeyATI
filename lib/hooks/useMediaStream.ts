@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
-import { useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { setScreenShareClosed } from "../store/features/mediaPreferences/mediaPreferencesSlice";
 
 export const useMediaStream = () => {
-  const { isCameraActive, isMicrophoneActive, isScreenSharingActive } =
-    useAppSelector((state) => state.mediaPreferences);
+  const dispatch = useAppDispatch();
+
+  const {
+    isCameraActive,
+    isMicrophoneActive,
+    isScreenSharingActive,
+    activeCameraDeviceId,
+    activeMicrophoneDeviceId,
+  } = useAppSelector((state) => state.mediaPreferences);
 
   const generateEmptyAudioTrack = () => {
     return new AudioContext()
@@ -46,7 +54,11 @@ export const useMediaStream = () => {
       if (isCameraActive) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
+            video: {
+              deviceId: activeCameraDeviceId
+                ? { exact: activeCameraDeviceId }
+                : undefined,
+            },
           });
           setCameraStream(stream);
         } catch (error) {
@@ -67,14 +79,18 @@ export const useMediaStream = () => {
         cameraStream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [isCameraActive]);
+  }, [isCameraActive, activeCameraDeviceId]);
 
   useEffect(() => {
     const getMicrophoneStream = async () => {
       if (isMicrophoneActive) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
+            audio: {
+              deviceId: activeMicrophoneDeviceId
+                ? { exact: activeMicrophoneDeviceId }
+                : undefined,
+            },
           });
           setMicrophoneStream(stream);
         } catch (error) {
@@ -95,7 +111,7 @@ export const useMediaStream = () => {
         microphoneStream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [isMicrophoneActive]);
+  }, [isMicrophoneActive, activeMicrophoneDeviceId]);
 
   useEffect(() => {
     const getScreenShareStream = async () => {
@@ -105,8 +121,13 @@ export const useMediaStream = () => {
             video: true,
           });
           setScreenShareStream(stream);
+
+          stream.getVideoTracks()[0].addEventListener("ended", () => {
+            dispatch(setScreenShareClosed());
+          });
         } catch (error) {
           console.error("Error accessing screen sharing.", error);
+          dispatch(setScreenShareClosed());
         }
       } else {
         if (screenShareStream) {

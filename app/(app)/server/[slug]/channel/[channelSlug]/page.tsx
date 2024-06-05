@@ -13,7 +13,6 @@ import ServerUserDetailPanel from "../../ServerUserDetailPanel";
 import ServerNavigationPanel from "@/components/NavigationPanel/ServerNavigationPanel";
 import { AppContentPanel } from "@/components/AppContentPanel";
 import {
-  ChannelMessagesGroupedByDateType,
   ChannelMessageSuccessResponseBodyDataType,
   SafeChannelType,
   SafeEventType,
@@ -82,7 +81,9 @@ const ChannelPage = ({
         />
 
         <AppContentPanel>
-          <AppContentPanel.Header style={style}>Channel</AppContentPanel.Header>
+          <AppContentPanel.Header style={style}>
+            {targetChannel ? targetChannel.channel_name : "Loading..."}
+          </AppContentPanel.Header>
           <AppContentPanel.Container>
             <AppPanel style={style}>
               {isLoading ? (

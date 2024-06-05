@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Archivo } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { api } from "@/lib/api";
@@ -10,8 +10,9 @@ import VideoChatConditionalRenderer from "@/components/VideoChat/VideoChatCondit
 
 import "@/app/globals.css";
 import WebSocketConnection from "@/components/WebSocket";
+import AIAssistant from "@/components/AIAssistant";
 
-const archivio = Archivo({ subsets: ["latin"] });
+const archivio = Space_Grotesk({ subsets: ["latin"] });
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -61,6 +62,7 @@ const createLayout = ({ type }: LayoutOptions) => {
               <WebSocketConnection />
               <VideoChatConditionalPreviewRenderer />
               <VideoChatConditionalRenderer />
+              <AIAssistant />
             </main>
           </StoreProvider>
         );

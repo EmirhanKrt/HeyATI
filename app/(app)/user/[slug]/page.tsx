@@ -10,6 +10,7 @@ import { useAppSelector } from "@/lib/store/hooks";
 import { AppPanel } from "@/components/AppPanel";
 import ServerNavigationPanel from "@/components/NavigationPanel/ServerNavigationPanel";
 import { AppContentPanel } from "@/components/AppContentPanel";
+import AIAssistant from "@/components/AIAssistant";
 
 const UserPrivateMessagePage = ({ params }: { params: { slug: string } }) => {
   const user_name = params.slug;
@@ -66,6 +67,7 @@ const UserPrivateMessagePage = ({ params }: { params: { slug: string } }) => {
           </AppContentPanel.Container>
         </AppContentPanel>
       </section>
+      <AIAssistant />
     </>
   );
 };

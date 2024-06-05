@@ -9,6 +9,7 @@ import "./videoChat.global.css";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import FullScreenButton from "./FullScreenButton";
 import { useEffect, useRef, useState } from "react";
+import { leaveCall } from "@/lib/store/features/videoChat/videoChatSlice";
 
 type CreateVideoChatContainerType = {
   containerType: "create_live_chat";
@@ -101,25 +102,41 @@ const VideoChatContainer = (props: VideoChatContainerType) => {
   switch (props.containerType) {
     case "create_live_chat":
       buttonGroup = (
-        <button
-          className="primary icon-button"
-          style={{ width: "auto", borderRadius: 7, marginRight: "auto" }}
-          onClick={(event) => {
-            const wsMessagePayload = {
-              operation_type: "create",
-              payload: {
-                user_name: [props.userName],
-              },
-            };
+        <>
+          <button
+            className="primary icon-button"
+            style={{ width: "auto", borderRadius: 7 }}
+            onClick={(event) => {
+              const wsMessagePayload = {
+                operation_type: "create",
+                payload: {
+                  user_name: [props.userName],
+                },
+              };
 
-            dispatch({
-              type: "WEBSOCKET_SEND_MESSAGE",
-              payload: JSON.stringify(wsMessagePayload),
-            });
-          }}
-        >
-          Start Call
-        </button>
+              dispatch({
+                type: "WEBSOCKET_SEND_MESSAGE",
+                payload: JSON.stringify(wsMessagePayload),
+              });
+            }}
+          >
+            Start Call
+          </button>
+          <button
+            className="icon-button"
+            style={{
+              width: "auto",
+              borderRadius: 7,
+              backgroundColor: "var(--error-background-color)",
+              marginRight: "auto",
+            }}
+            onClick={(event) => {
+              dispatch(leaveCall());
+            }}
+          >
+            Cancel
+          </button>
+        </>
       );
       break;
 
