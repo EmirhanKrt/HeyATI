@@ -26,6 +26,7 @@ import Form from "@/components/Form";
 import { LoadingCircle } from "@/components/LoadingCircle";
 import { ChannelChat } from "@/components/Chat/ChannelChat";
 import useChannelMessages from "@/lib/hooks/useChannelMessages";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 const MessageHeader = ({
   shouldRenderPhoto,
@@ -89,7 +90,9 @@ const MessageContent = ({
         </span>
       </h5>
     )}
-    <p className="message-content">{message.channel_message_content}</p>
+    <p className="message-content">
+      <MarkdownRenderer input={message.channel_message_content} />
+    </p>
   </div>
 );
 

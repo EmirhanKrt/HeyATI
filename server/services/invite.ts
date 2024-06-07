@@ -1,25 +1,24 @@
-/* import db from "@/server/db";
-import { InviteType } from "@/server/models/invite";
+import db from "@/server/db";
 import { serverInviteCodeTable } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export const InviteService = {
-  async createInvite(data: Partial<InviteType>) {
+  async createInvite(data: any) {
     const invite = await db
       .insert(serverInviteCodeTable)
       .values(data)
       .returning()
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
     return invite;
   },
 
-  async updateInvite(data: Partial<InviteType>, invite_id: number) {
+  async updateInvite(data: any, invite_id: number) {
     const updatedInvite = await db
       .update(serverInviteCodeTable)
       .set(data)
       .where(eq(serverInviteCodeTable.server_invite_code_id, invite_id))
       .returning()
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
     return updatedInvite;
   },
 
@@ -28,21 +27,25 @@ export const InviteService = {
       .delete(serverInviteCodeTable)
       .where(eq(serverInviteCodeTable.server_invite_code_id, invite_id))
       .returning()
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
     return deletedInvite;
   },
 
-  async getInvite(invite_id: number) {
+  async getInvite(invide_code: string) {
     const invite = await db
       .select()
       .from(serverInviteCodeTable)
-      .where(eq(serverInviteCodeTable.server_invite_code_id, invite_id))
-      .then(rows => rows[0]);
-    return invite;
+      .where(
+        and(
+          eq(serverInviteCodeTable.server_invite_code, invide_code),
+          eq(serverInviteCodeTable.is_in_use, true)
+        )
+      );
+
+    return invite[0];
   },
 
-  toSafeInviteType(invite: InviteType) {
+  toSafeInviteType(invite: any) {
     return invite;
   },
 };
- */

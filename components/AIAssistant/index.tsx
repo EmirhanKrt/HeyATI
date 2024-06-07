@@ -78,7 +78,7 @@ const AIAssistant = () => {
             role: "assistant",
             content: accumulatedAssistantMessage,
           };
-          console.dir({ accumulatedAssistantMessage }, { depth: null });
+
           setConversationHistory((prevHistory) => [
             ...prevHistory,
             assistantMessage,

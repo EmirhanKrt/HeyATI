@@ -69,6 +69,10 @@ const serverSuccessResponseSchema = generateSuccessReponseBodySchema(
   serverSuccessResponseBodyDataSchema
 );
 
+const serverJoinRequestBody = t.Object({
+  server_invite_code: t.String({ format: "uuid" }),
+});
+
 export type ServerType = Static<typeof serverSelectSchema>;
 
 export type SafeServerType = Static<
@@ -93,6 +97,7 @@ export const serverModel = new Elysia().model({
     "server_description",
   ]),
   "server.post.index.response.body": serverSuccessResponseSchema,
+  "server.post.join.request.body": serverJoinRequestBody,
   "server.put.server_id.request.body": serverUpdateSchemaWithoutServerId,
   "server.server_id.response.body": serverSuccessResponseSchema,
   "server.server_id.request.params": serverRequestParamsSchema,

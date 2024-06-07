@@ -13,6 +13,7 @@ import ServerUserDetailPanel from "./ServerUserDetailPanel";
 import ServerHomeAppPanel from "./ServerHomeAppPanel";
 import ServerNavigationPanel from "@/components/NavigationPanel/ServerNavigationPanel";
 import { AppContentPanel } from "@/components/AppContentPanel";
+import ToggleDetailsPanelButton from "@/components/ToggleDetailsPanelButton";
 
 const ServerPage = ({ params }: { params: { slug: number } }) => {
   const server_id = params.slug;
@@ -52,7 +53,12 @@ const ServerPage = ({ params }: { params: { slug: number } }) => {
         />
 
         <AppContentPanel>
-          <AppContentPanel.Header style={style}>1</AppContentPanel.Header>
+          <AppContentPanel.Header
+            style={{ ...style, display: "flex", alignItems: "center" }}
+          >
+            <span style={{ flexGrow: 1 }}>Server Dashboard</span>
+            <ToggleDetailsPanelButton />
+          </AppContentPanel.Header>
           <AppContentPanel.Container>
             <AppPanel style={style}>
               <ServerHomeAppPanel

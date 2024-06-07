@@ -5,6 +5,7 @@ import { ContextWithUser } from "@/server/types";
 import { ServerService } from "@/server/services";
 import { BodyValidationError, ForbiddenError } from "@/server/errors";
 import { userAccessPlugin } from "@/server/plugins";
+import { InviteService } from "../services/invite";
 
 export const serverRoutes = new Elysia({
   name: "server-routes",
@@ -34,6 +35,74 @@ export const serverRoutes = new Elysia({
     },
     {
       body: "server.post.index.request.body",
+      response: "server.post.index.response.body",
+    }
+  )
+  .post(
+    "/join",
+    async (context) => {
+      const contextWithUser = context as ContextWithUser;
+
+      const inviteCode = await InviteService.getInvite(
+        context.body.server_invite_code
+      );
+
+      if (!inviteCode) {
+        throw new BodyValidationError(
+          [{ path: "server_invite_code", message: "Invalid value." }],
+          "Server invite code is not valid."
+        );
+      }
+
+      const serverUser = await ServerService.getServerUserByServerAndUserId(
+        contextWithUser.user.user_id,
+        inviteCode.server_id
+      );
+
+      if (serverUser) {
+        if (serverUser.is_user_active) {
+          throw new BodyValidationError(
+            [{ path: "server_invite_code", message: "Invalid value." }],
+            "User already exists in server."
+          );
+        } else if (serverUser.is_user_banned) {
+          if (
+            serverUser.user_banned_until_date &&
+            new Date(serverUser.user_banned_until_date) > new Date()
+          ) {
+            throw new BodyValidationError(
+              [{ path: "server_invite_code", message: "Invalid value." }],
+              "User cannot join this server."
+            );
+          }
+        }
+      }
+
+      const joinedUser = await ServerService.joinServer(
+        inviteCode.server_id,
+        contextWithUser.user.user_id,
+        inviteCode.server_invite_code_id
+      );
+
+      if (!joinedUser) {
+        throw new BodyValidationError(
+          [{ path: "server_invite_code", message: "Invalid value." }],
+          "User cannot join this server."
+        );
+      }
+
+      const server = await ServerService.getServer(inviteCode.server_id);
+
+      return {
+        success: true,
+        message: "User joined server succefully.",
+        data: {
+          server: server,
+        },
+      };
+    },
+    {
+      body: "server.post.join.request.body",
       response: "server.post.index.response.body",
     }
   )

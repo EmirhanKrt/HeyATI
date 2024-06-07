@@ -90,7 +90,28 @@ const ServerSubNavigationPanel = ({
   const server = useAppSelector((selector) => selector.server)[activeServerId];
 
   if (isLoading) {
-    return <LoadingCircle />;
+    return (
+      <section className="navigation-subpanel-container" style={style}>
+        <div className="navigation-header" style={{ display: "flex", gap: 8 }}>
+          <span
+            style={{
+              flexGrow: 1,
+              color: "var(--title-color)",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            Loading...
+          </span>
+        </div>
+
+        <LoadingCircle />
+
+        <UserAvatar />
+      </section>
+    );
   }
 
   if (!isServerFound) {

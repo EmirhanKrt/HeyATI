@@ -81,6 +81,7 @@ export const serverSlice = createSlice({
 
       channel.messages = newMessagesGrouped;
     },
+
     postChannelMessage: (
       state,
       action: PayloadAction<{

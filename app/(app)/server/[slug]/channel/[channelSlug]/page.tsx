@@ -19,6 +19,7 @@ import {
 } from "@/server/models";
 import ChannelPrivateMessagePanel from "./ChannelPrivateMessagePanel";
 import { LoadingCircle } from "@/components/LoadingCircle";
+import ToggleDetailsPanelButton from "@/components/ToggleDetailsPanelButton";
 
 const ChannelPage = ({
   params,
@@ -81,8 +82,13 @@ const ChannelPage = ({
         />
 
         <AppContentPanel>
-          <AppContentPanel.Header style={style}>
-            {targetChannel ? targetChannel.channel_name : "Loading..."}
+          <AppContentPanel.Header
+            style={{ ...style, display: "flex", alignItems: "center" }}
+          >
+            <span style={{ flexGrow: 1 }}>
+              {targetChannel ? targetChannel.channel_name : "Loading..."}
+            </span>
+            <ToggleDetailsPanelButton />
           </AppContentPanel.Header>
           <AppContentPanel.Container>
             <AppPanel style={style}>

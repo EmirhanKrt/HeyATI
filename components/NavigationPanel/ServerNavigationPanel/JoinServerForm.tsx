@@ -41,8 +41,8 @@ const JoinServerForm = () => {
     setErrorMessage(Object.assign({}, errorMessageInitialState));
     setStatus(null);
     setStatusMessage("");
-    /* 
-    const { error, data } = await api.server. .post({
+
+    const { error, data } = await api.server.join.post({
       server_invite_code,
     });
 
@@ -77,7 +77,7 @@ const JoinServerForm = () => {
       setTimeout(() => {
         router.push(`/server/${data.data.server.server_id}`);
       }, 1000);
-    }  */
+    }
 
     setIsLoading(false);
   };

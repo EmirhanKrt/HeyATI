@@ -1,11 +1,6 @@
 import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { api } from "../api";
-import {
-  addServer,
-  initialServerDetailedData,
-  setMessagesByChannelId,
-} from "../store/features/server/serverSlice";
+import { useAppDispatch } from "../store/hooks";
+import { setMessagesByChannelId } from "../store/features/server/serverSlice";
 
 const useChannelMessages = (server_id: number, channel_id: number) => {
   const dispatch = useAppDispatch();

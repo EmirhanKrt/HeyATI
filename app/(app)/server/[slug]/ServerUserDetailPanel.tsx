@@ -96,8 +96,6 @@ const ServerUserDetailPanel = ({
       className="details"
       style={{
         justifyContent: "flex-start",
-        display: "flex",
-        flexDirection: "column",
         overflow: "auto",
         gap: 16,
       }}

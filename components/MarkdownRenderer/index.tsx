@@ -38,7 +38,7 @@ const CodeBlock = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          background: "var(--background-color-3)",
+          background: "var(--background-color)",
           borderTopLeftRadius: 4,
           borderTopRightRadius: 4,
           padding: "0 .5rem 0 1rem",

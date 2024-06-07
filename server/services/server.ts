@@ -34,55 +34,60 @@ export abstract class ServerService {
         created_at: serverTable.created_at,
 
         users: sql`
-          COALESCE(
-            json_agg(
-              json_build_object(
-                'user_id', public."User".user_id,
-                'user_name', public."User".user_name,
-                'first_name', public."User".first_name,
-                'last_name', public."User".last_name,
-                'role', public."ServerUser".role
-              )
-            ) FILTER (
-              WHERE public."User".user_name IS NOT NULL
-            ),
-            '[]'::JSON
-          ) AS users`,
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'user_id', u.user_id,
+              'user_name', u.user_name,
+              'first_name', u.first_name,
+              'last_name', u.last_name,
+              'role', su.role
+            )
+          )
+          FROM public."User" u
+          JOIN public."ServerUser" su ON u.user_id = su.user_id
+          WHERE su.server_id = ${serverTable.server_id}
+        ),
+        '[]'::JSON
+      ) AS users`,
 
         channels: sql`
-          COALESCE(
-            json_agg(
-              json_build_object(
-                'channel_id', public."Channel".channel_id,
-                'channel_name', public."Channel".channel_name,
-                'server_id', public."Channel".server_id,
-                'owner_id', public."Channel".owner_id,
-                'created_at', public."Channel".created_at,
-
-                'events', COALESCE(
-                  (
-                    SELECT json_agg(
-                      json_build_object(
-                        'event_id', e.event_id,
-                        'event_title', e.event_title,
-                        'event_description', e.event_description,
-                        'owner_id', e.owner_id,
-                        'event_start_date', e.event_start_date,
-                        'event_finish_date', e.event_finish_date,
-                        'created_at', e.created_at
-                      )
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'channel_id', c.channel_id,
+              'channel_name', c.channel_name,
+              'server_id', c.server_id,
+              'owner_id', c.owner_id,
+              'created_at', c.created_at,
+              'events', COALESCE(
+                (
+                  SELECT json_agg(
+                    json_build_object(
+                      'event_id', e.event_id,
+                      'event_title', e.event_title,
+                      'event_description', e.event_description,
+                      'owner_id', e.owner_id,
+                      'event_start_date', e.event_start_date,
+                      'event_finish_date', e.event_finish_date,
+                      'created_at', e.created_at
                     )
-                    FROM public."Event" e
-                    WHERE e.channel_id = public."Channel".channel_id
-                  ),
-                  '[]'::JSON
-                )
-              )
-            ) FILTER (
-              WHERE public."Channel".channel_id IS NOT NULL
-            ),
-            '[]'::JSON
-          ) AS channels`,
+                  )
+                  FROM public."Event" e
+                  WHERE e.channel_id = c.channel_id
+                ),
+                '[]'::JSON
+              ),
+              'messages', '{}'::JSON
+            )
+          )
+          FROM public."Channel" c
+          WHERE c.server_id = ${serverTable.server_id}
+        ),
+        '[]'::JSON
+      ) AS channels`,
       })
       .from(serverTable)
       .leftJoin(channelTable, eq(channelTable.server_id, serverTable.server_id))
@@ -155,57 +160,60 @@ export abstract class ServerService {
         created_at: serverTable.created_at,
 
         users: sql`
-          COALESCE(
-            json_agg(
-              json_build_object(
-                'user_id', public."User".user_id,
-                'user_name', public."User".user_name,
-                'first_name', public."User".first_name,
-                'last_name', public."User".last_name,
-                'role', public."ServerUser".role
-              )
-            ) FILTER (
-              WHERE public."User".user_name IS NOT NULL
-            ),
-            '[]'::JSON
-          ) AS users`,
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'user_id', u.user_id,
+              'user_name', u.user_name,
+              'first_name', u.first_name,
+              'last_name', u.last_name,
+              'role', su.role
+            )
+          )
+          FROM public."User" u
+          JOIN public."ServerUser" su ON u.user_id = su.user_id
+          WHERE su.server_id = ${serverTable.server_id}
+        ),
+        '[]'::JSON
+      ) AS users`,
 
         channels: sql`
-          COALESCE(
-            json_agg(
-              json_build_object(
-                'channel_id', public."Channel".channel_id,
-                'channel_name', public."Channel".channel_name,
-                'server_id', public."Channel".server_id,
-                'owner_id', public."Channel".owner_id,
-                'created_at', public."Channel".created_at,
-
-                'events', COALESCE(
-                  (
-                    SELECT json_agg(
-                      json_build_object(
-                        'event_id', e.event_id,
-                        'event_title', e.event_title,
-                        'event_description', e.event_description,
-                        'owner_id', e.owner_id,
-                        'event_start_date', e.event_start_date,
-                        'event_finish_date', e.event_finish_date,
-                        'created_at', e.created_at
-                      )
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'channel_id', c.channel_id,
+              'channel_name', c.channel_name,
+              'server_id', c.server_id,
+              'owner_id', c.owner_id,
+              'created_at', c.created_at,
+              'events', COALESCE(
+                (
+                  SELECT json_agg(
+                    json_build_object(
+                      'event_id', e.event_id,
+                      'event_title', e.event_title,
+                      'event_description', e.event_description,
+                      'owner_id', e.owner_id,
+                      'event_start_date', e.event_start_date,
+                      'event_finish_date', e.event_finish_date,
+                      'created_at', e.created_at
                     )
-                    FROM public."Event" e
-                    WHERE e.channel_id = public."Channel".channel_id
-                  ),
-                  '[]'::JSON
+                  )
+                  FROM public."Event" e
+                  WHERE e.channel_id = c.channel_id
                 ),
-                
-                'messages', '{}'::JSON
-              )
-            ) FILTER (
-              WHERE public."Channel".channel_id IS NOT NULL
-            ),
-            '[]'::JSON
-          ) AS channels`,
+                '[]'::JSON
+              ),
+              'messages', '{}'::JSON
+            )
+          )
+          FROM public."Channel" c
+          WHERE c.server_id = ${serverTable.server_id}
+        ),
+        '[]'::JSON
+      ) AS channels`,
       })
       .from(serverTable)
       .leftJoin(channelTable, eq(channelTable.server_id, serverTable.server_id))
@@ -270,6 +278,19 @@ export abstract class ServerService {
       .groupBy(serverTable.server_id);
 
     return serverData as ServerDataListType;
+  }
+
+  static async joinServer(
+    server_id: number,
+    user_id: number,
+    server_invite_code_id: number
+  ) {
+    const serverList = await db
+      .insert(serverUserTable)
+      .values({ server_id, user_id, server_invite_code_id })
+      .returning();
+
+    return serverList[0];
   }
 
   static toSafeServerType(server: ServerType): SafeServerType {

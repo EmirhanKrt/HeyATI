@@ -13,14 +13,12 @@ const useServerDetails = (server_id: number) => {
 
   useEffect(() => {
     const getServerDetails = async () => {
-      if (!targetServer) {
-        const { data: serverDetails } = await api.server({ server_id }).get();
+      const { data: serverDetails } = await api.server({ server_id }).get();
 
-        if (serverDetails) {
-          dispatch(addServer(serverDetails.data.server));
-        } else {
-          dispatch(addServer(initialServerDetailedData(server_id)));
-        }
+      if (serverDetails) {
+        dispatch(addServer(serverDetails.data.server));
+      } else {
+        dispatch(addServer(initialServerDetailedData(server_id)));
       }
     };
 

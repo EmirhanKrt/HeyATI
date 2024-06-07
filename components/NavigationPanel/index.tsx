@@ -1,4 +1,3 @@
-import ServerNavigationPanel from "./ServerNavigationPanel";
 import DashboardSubNavigationPanel from "./DashboardSubNavigationPanel";
 import ServerSubNavigationPanel from "./ServerSubNavigationPanel";
 
