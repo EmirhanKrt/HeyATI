@@ -10,19 +10,32 @@ type CreateVideoChatContainerType = {
   userName: string;
 };
 
+type CreateChannelVideoChatContainerType = {
+  containerType: "create_channel_live_chat";
+  server_id: number;
+  channel_id: number;
+  channel_name: string;
+};
+
 type JoinVideoChatContainerType = {
   containerType: "join_live_chat";
 };
 
+type JoinChannelVideoChatContainerType = {
+  containerType: "join_channel_live_chat";
+};
+
 type VideoChatContainerType =
   | CreateVideoChatContainerType
-  | JoinVideoChatContainerType;
+  | CreateChannelVideoChatContainerType
+  | JoinVideoChatContainerType
+  | JoinChannelVideoChatContainerType;
 
 const VideoChatPreview = (props: VideoChatContainerType) => {
   const permissionsGranted = useMediaPermissions();
   const { cameraStream, microphoneStream } = useMediaStream();
 
-  const { calledRoomId, callerUser } = useAppSelector(
+  const { calledRoomId, callerUser, calledChannelName } = useAppSelector(
     (state) => state.videoChat.showPreviewPayload
   );
   const { isMicrophoneActive } = useAppSelector(
@@ -101,11 +114,54 @@ const VideoChatPreview = (props: VideoChatContainerType) => {
       </VideoChatContainer>
     );
 
-  if (props.containerType === "join_live_chat")
+  if (props.containerType === "create_channel_live_chat")
     content = (
       <VideoChatContainer
-        containerType="join_live_chat"
-        userName={callerUser.user_name}
+        containerType="create_channel_live_chat"
+        server_id={props.server_id}
+        channel_id={props.channel_id}
+      >
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
+          <h4>You are going to call {props.channel_name}</h4>
+          {defaultContent}
+        </div>
+      </VideoChatContainer>
+    );
+
+  if (props.containerType === "join_live_chat")
+    content = (
+      <VideoChatContainer containerType="join_live_chat" room_id={calledRoomId}>
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
+          <h4>{callerUser.user_name} is calling</h4>
+          {defaultContent}
+        </div>
+      </VideoChatContainer>
+    );
+
+  if (props.containerType === "join_channel_live_chat")
+    content = (
+      <VideoChatContainer
+        containerType="join_channel_live_chat"
         room_id={calledRoomId}
       >
         <div
@@ -119,7 +175,7 @@ const VideoChatPreview = (props: VideoChatContainerType) => {
             gap: 16,
           }}
         >
-          <h4>{callerUser.user_name} is calling</h4>
+          <h4>You called from {calledChannelName}</h4>
           {defaultContent}
         </div>
       </VideoChatContainer>

@@ -14,8 +14,19 @@ const VideoChatConditionalPreviewRenderer = () => {
           userName={videoChat.showPreviewPayload.userName}
         />
       );
+    } else if (videoChat.showPreviewType === "create_channel_live_chat") {
+      return (
+        <VideoChatPreview
+          containerType="create_channel_live_chat"
+          server_id={videoChat.showPreviewPayload.server_id}
+          channel_id={videoChat.showPreviewPayload.channel_id}
+          channel_name={videoChat.showPreviewPayload.channel_name}
+        />
+      );
     } else if (videoChat.showPreviewType === "join_live_chat") {
       return <VideoChatPreview containerType="join_live_chat" />;
+    } else if (videoChat.showPreviewType === "join_channel_live_chat") {
+      return <VideoChatPreview containerType="join_channel_live_chat" />;
     }
   }
 

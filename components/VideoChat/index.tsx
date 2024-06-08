@@ -11,6 +11,7 @@ import {
   updatePeerConnectionState,
 } from "@/lib/store/features/peer/peerSlice";
 import { setFullScreen } from "@/lib/store/features/videoChat/videoChatSlice";
+import { getHostForWS } from "@/lib/api";
 
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 
@@ -52,7 +53,7 @@ const VideoChat = ({ roomId }: { roomId: string }) => {
     let reconnectInterval: number | null = null;
 
     const connectWebSocket = () => {
-      ws = new WebSocket(`ws://localhost:3001/ws/${roomId}`);
+      ws = new WebSocket(`${getHostForWS()}/ws/${roomId}`);
 
       ws.onopen = () => {
         console.log("WebSocket connected");

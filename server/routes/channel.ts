@@ -6,6 +6,8 @@ import { ChannelService } from "@/server/services";
 import { BodyValidationError } from "@/server/errors";
 import { channelMessageRoutes } from "./channelMessage";
 import { channelPlugin } from "../plugins";
+import WebSocketManager from "../websocket-data";
+import { broadcastToServer } from "@/lib/brodcastToServer";
 
 const getChannelsRoute = new Elysia({
   name: "get-channels-route",
@@ -46,6 +48,23 @@ const channelIndexRoutes = new Elysia({
         owner_id: contextWithUser.user.user_id,
       });
 
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        channel.server_id,
+        contextWithUser.user.user_name,
+        {
+          success: true,
+          message: "Channel created successfully.",
+          data: {
+            type: "post_channel",
+            server_id: channel.server_id,
+            channel: ChannelService.toSafeChannelType(channel!),
+          },
+        }
+      );
+
       return {
         success: true,
         message: "Channel created successfully.",
@@ -79,20 +98,39 @@ const channelIndexRoutes = new Elysia({
   )
   .put(
     `/:${channelTable.channel_id.name}`,
-    async ({ body, channel }) => {
-      if (!Object.keys(body).length)
+    async (context) => {
+      const contextWithUser = context as any;
+
+      if (!Object.keys(context.body).length)
         throw new BodyValidationError(
           [{ path: "channel_name", message: "Invalid value." }],
           "For update the channel details, channel name must be provided."
         );
 
       const updatePayload = {
-        ...body,
+        ...context.body,
       } as ChannelUpdatePayloadType;
 
       const updatedChannel = await ChannelService.updateChannel(
         updatePayload,
-        channel.channel_id
+        context.channel.channel_id
+      );
+
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        context.channel.server_id,
+        contextWithUser.user.user_name,
+        {
+          success: true,
+          message: "Updated channel successfully.",
+          data: {
+            type: "update_channel",
+            server_id: context.channel.server_id,
+            channel: ChannelService.toSafeChannelType(updatedChannel!),
+          },
+        }
       );
 
       return {
@@ -111,11 +149,29 @@ const channelIndexRoutes = new Elysia({
   )
   .delete(
     `/:${channelTable.channel_id.name}`,
-    async ({ channel }) => {
+    async (context) => {
+      const contextWithUser = context as any;
+
       const deletedChannel = await ChannelService.deleteChannel(
-        channel.channel_id
+        context.channel.channel_id
       );
 
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        context.channel.server_id,
+        contextWithUser.user.user_name,
+        {
+          success: true,
+          message: "Deleted channel successfully.",
+          data: {
+            type: "delete_channel",
+            server_id: context.channel.server_id,
+            channel: ChannelService.toSafeChannelType(deletedChannel!),
+          },
+        }
+      );
       return {
         success: true,
         message: "Deleted channel successfully.",

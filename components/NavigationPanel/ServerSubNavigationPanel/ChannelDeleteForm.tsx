@@ -7,7 +7,10 @@ import { ServerDetailedDataType } from "@/server/models";
 import { ValidationErrorData } from "@/server/types";
 
 import Form from "@/components/Form";
-import { updateChannel } from "@/lib/store/features/server/serverSlice";
+import {
+  deleteChannel,
+  updateChannel,
+} from "@/lib/store/features/server/serverSlice";
 import axios from "axios";
 
 type ErrorMessageObjectType = {
@@ -18,7 +21,7 @@ const errorMessageInitialState = {
   channel_name: null,
 };
 
-const ChannelUpdateForm = ({
+const ChannelDeleteForm = ({
   server_id,
   channel_id,
 }: {
@@ -35,7 +38,10 @@ const ChannelUpdateForm = ({
     (channelIteration) => channelIteration.channel_id === channel_id
   );
 
-  const [channel_name, setServerName] = useState(channel!.channel_name);
+  const [initial_channel_name, setInitialServerName] = useState(
+    channel!.channel_name
+  );
+  const [channel_name, setServerName] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<ErrorMessageObjectType>(
@@ -54,25 +60,17 @@ const ChannelUpdateForm = ({
     setStatus(null);
     setStatusMessage("");
 
-    let updatePayload: any = {};
-
-    if (channel_name !== channel!.channel_name)
-      updatePayload.channel_name = channel_name;
-
-    if (Object.keys(updatePayload).length === 0) {
+    if (channel_name !== initial_channel_name) {
       setStatus(false);
-      setStatusMessage("No updates provided.");
+      setStatusMessage("Please provide channel name successfully.");
 
       setIsLoading(false);
       return;
     }
 
     try {
-      const request = await axios.put(
-        `/api/server/${server_id}/channel/${channel_id}`,
-        {
-          channel_name: updatePayload.channel_name,
-        }
+      const request = await axios.delete(
+        `/api/server/${server_id}/channel/${channel_id}`
       );
 
       if (request.status === 200) {
@@ -80,7 +78,7 @@ const ChannelUpdateForm = ({
         setStatus(true);
 
         dispatch(
-          updateChannel({
+          deleteChannel({
             server_id: server_id,
             channel: request.data.data.channel,
           })
@@ -123,20 +121,39 @@ const ChannelUpdateForm = ({
     >
       <Form.StatusMessage status={status} message={statusMessage} />
       <Form.Body>
+        <p>
+          This channel will be deleted, along with all of its Messages and
+          Events.
+        </p>
+        <p>Warning: This action is not reversible. Please be certain.</p>
+        <p>Enter the channel name {initial_channel_name} to continue:</p>
         <Form.Input
           title="Channel Name"
           type="text"
           id="channel_name"
           name="channel_name"
-          placeholder="Enter new channel name"
+          placeholder="Enter channel name"
           value={channel_name}
           onChange={channel_name_change}
           errorMessage={errorMessage.channel_name}
         />
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button className="primary" type="submit" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update"}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <button
+            className="primary"
+            type="submit"
+            disabled={isLoading}
+            style={{
+              background: "var(--error-background-color)",
+            }}
+          >
+            {isLoading ? "Deleting..." : "Delete"}
           </button>
         </div>
       </Form.Body>
@@ -144,4 +161,4 @@ const ChannelUpdateForm = ({
   );
 };
 
-export default ChannelUpdateForm;
+export default ChannelDeleteForm;

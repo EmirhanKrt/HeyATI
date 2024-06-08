@@ -4,7 +4,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 type VideoChatStateType = {
   roomId: string | null;
   showPreview: boolean;
-  showPreviewType: null | "create_live_chat" | "join_live_chat";
+  showPreviewType:
+    | null
+    | "create_live_chat"
+    | "create_channel_live_chat"
+    | "join_live_chat"
+    | "join_channel_live_chat";
   showPreviewPayload: any;
   isFullScreen: boolean;
 };
@@ -30,6 +35,19 @@ export const videoChatSlice = createSlice({
       state.showPreviewPayload = action.payload;
       state.isFullScreen = true;
     },
+    requestedCreateChannelCall: (
+      state,
+      action: PayloadAction<{
+        server_id: number;
+        channel_id: number;
+        channel_name: string;
+      }>
+    ) => {
+      state.showPreview = true;
+      state.showPreviewType = "create_channel_live_chat";
+      state.showPreviewPayload = action.payload;
+      state.isFullScreen = true;
+    },
     receivedJoinCall: (
       state,
       action: PayloadAction<{
@@ -40,6 +58,21 @@ export const videoChatSlice = createSlice({
     ) => {
       state.showPreview = true;
       state.showPreviewType = "join_live_chat";
+      state.showPreviewPayload = action.payload;
+      state.isFullScreen = true;
+    },
+    receivedJoinChannelCall: (
+      state,
+      action: PayloadAction<{
+        roomId: string;
+        calledRoomId: string;
+        calledServerId: number;
+        calledChannelId: number;
+        calledChannelName: string;
+      }>
+    ) => {
+      state.showPreview = true;
+      state.showPreviewType = "join_channel_live_chat";
       state.showPreviewPayload = action.payload;
       state.isFullScreen = true;
     },
@@ -59,6 +92,11 @@ export const videoChatSlice = createSlice({
       state.showPreviewPayload = {};
       state.isFullScreen = true;
     },
+    rejectCall: (state) => {
+      state.showPreview = false;
+      state.showPreviewType = null;
+      state.showPreviewPayload = {};
+    },
     leaveCall: (state) => {
       state.roomId = null;
       state.showPreview = false;
@@ -77,8 +115,11 @@ export const videoChatSlice = createSlice({
 
 export const {
   requestedCreateCall,
+  requestedCreateChannelCall,
   receivedJoinCall,
+  receivedJoinChannelCall,
   createCall,
+  rejectCall,
   joinCall,
   leaveCall,
   toggleFullScreen,

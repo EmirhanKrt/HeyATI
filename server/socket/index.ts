@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 
 import * as plugins from "@/server/plugins";
 import WebSocketManager from "../websocket-data";
+import { broadcastToServer } from "@/lib/brodcastToServer";
 
 const OPERATION = {
   READY: "ready",
@@ -60,45 +61,81 @@ const WebsocketServer = new Elysia({ name: "websocket-server" })
       if (message.operation_type === OPERATION.CREATE) {
         const room_id = crypto.randomUUID();
 
-        const roomUserMap = [
-          currentUser.user_name as string,
-          ...receiverUserNameList,
-        ];
+        let roomUserMap: string[] = [];
 
-        wsManager.createRoom(room_id, roomUserMap);
+        if (message.payload.user_name) {
+          roomUserMap = [
+            currentUser.user_name as string,
+            ...receiverUserNameList,
+          ];
 
-        ws.send(
-          JSON.stringify({
-            success: true,
-            message: `Created room (${room_id}) succesfully.`,
-            data: {
-              type: "create_live_chat",
-              room_id: room_id,
-            },
-          })
-        );
+          wsManager.createRoom(room_id, roomUserMap);
 
-        if (Array.isArray(receiverUserNameList)) {
-          for (const receiverUserName of receiverUserNameList) {
-            if (receiverUserName === currentUser.user_name) continue;
+          ws.send(
+            JSON.stringify({
+              success: true,
+              message: `Created room (${room_id}) succesfully.`,
+              data: {
+                type: "create_live_chat",
+                room_id: room_id,
+              },
+            })
+          );
 
-            const receiverUserSocket =
-              wsManager.getUserConnection(receiverUserName);
+          if (Array.isArray(receiverUserNameList)) {
+            for (const receiverUserName of receiverUserNameList) {
+              if (receiverUserName === currentUser.user_name) continue;
 
-            if (receiverUserSocket) {
-              receiverUserSocket.socket.send(
-                JSON.stringify({
-                  success: true,
-                  message: `User: ${currentUser.user_name} called.`,
-                  data: {
-                    type: "request_user_to_join_live_chat",
-                    room_id: room_id,
-                    user: currentUser,
-                  },
-                })
-              );
+              const receiverUserSocket =
+                wsManager.getUserConnection(receiverUserName);
+
+              if (receiverUserSocket) {
+                receiverUserSocket.socket.send(
+                  JSON.stringify({
+                    success: true,
+                    message: `User: ${currentUser.user_name} called.`,
+                    data: {
+                      type: "request_user_to_join_live_chat",
+                      room_id: room_id,
+                      user: currentUser,
+                    },
+                  })
+                );
+              }
             }
           }
+        } else if (message.payload.server_id && message.payload.channel_id) {
+          roomUserMap =
+            wsManager.getServerUserSocket(+message.payload.server_id) || [];
+
+          wsManager.createRoom(room_id, roomUserMap);
+
+          ws.send(
+            JSON.stringify({
+              success: true,
+              message: `Created room (${room_id}) succesfully.`,
+              data: {
+                type: "create_live_chat",
+                room_id: room_id,
+              },
+            })
+          );
+
+          broadcastToServer(
+            wsManager,
+            +message.payload.server_id,
+            currentUser.user_name as string,
+            {
+              success: true,
+              message: `User: ${currentUser.user_name} called.`,
+              data: {
+                type: "request_user_to_join_channel_live_chat",
+                room_id: room_id,
+                server_id: message.payload.server_id,
+                channel_id: message.payload.channel_id,
+              },
+            }
+          );
         }
       } else if (message.operation_type === OPERATION.JOIN) {
         ws.send(

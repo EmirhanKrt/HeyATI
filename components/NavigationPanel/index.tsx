@@ -15,6 +15,7 @@ type ServerPropType = {
   activeServerId: number;
   isLoading: boolean;
   isServerFound: boolean;
+  userRole: string;
 };
 
 type ChannelPropType = {
@@ -23,6 +24,7 @@ type ChannelPropType = {
   activeChannelId: number;
   isLoading: boolean;
   isServerFound: boolean;
+  userRole: string;
 };
 
 type PropType =
@@ -61,6 +63,7 @@ const NavigationPanel = (props: PropType) => {
                   }
                 : { backgroundColor: "var(--background-color-2)" }
             }
+            userRole={props.userRole}
           />
         );
 
@@ -80,6 +83,7 @@ const NavigationPanel = (props: PropType) => {
                   }
                 : { backgroundColor: "var(--background-color-2)" }
             }
+            userRole={props.userRole}
           />
         );
 

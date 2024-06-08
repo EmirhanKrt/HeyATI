@@ -10,7 +10,6 @@ interface ContextWithServer extends Context {
 export const channelPlugin = (app: Elysia) => {
   return app.derive({ as: "global" }, async (context) => {
     const contextWithServer = context as ContextWithServer;
-
     const channelIdParamValidationError = new ParamsValidationError(
       [{ path: "channel_id", message: "Invalid value." }],
       "Channel not found."

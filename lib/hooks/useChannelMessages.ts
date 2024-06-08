@@ -26,7 +26,7 @@ const useChannelMessages = (server_id: number, channel_id: number) => {
         } else {
         }
       } catch (error) {
-        console.error("Error occured on uploading file. Error:", error);
+        console.error("Error occured on getting messages. Error:", error);
       }
     };
 

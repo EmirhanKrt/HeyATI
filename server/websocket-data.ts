@@ -24,7 +24,7 @@ type RoomMap = Map<string, UserNameType[]>;
 
 type RoomUserMap = Map<string, UserMapType>;
 
-class WebSocketManager {
+export class WebSocketManager {
   private static instance: WebSocketManager | null = null;
   private userSocketMap: UserMapType;
   private serverSocketMap: ServerMapType;
@@ -132,6 +132,11 @@ class WebSocketManager {
 
       this.setRoomUserSocketByRoomId(roomId, room);
     }
+  }
+
+  public getServerUserSocket(serverId: number) {
+    if (this.serverSocketMap.has(serverId))
+      return this.serverSocketMap.get(serverId)?.users;
   }
 }
 

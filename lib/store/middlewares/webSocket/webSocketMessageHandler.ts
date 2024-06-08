@@ -4,9 +4,18 @@ import {
   deleteMessage,
 } from "../../features/interactedUsers/interactedUsersSlice";
 import {
+  addChannel,
+  deleteChannel,
+  deleteChannelMessage,
+  postChannelMessage,
+  updateChannel,
+  updateChannelMessage,
+} from "../../features/server/serverSlice";
+import {
   createCall,
   joinCall,
   receivedJoinCall,
+  receivedJoinChannelCall,
 } from "../../features/videoChat/videoChatSlice";
 
 const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
@@ -66,8 +75,77 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
       );
       break;
 
+    case "request_user_to_join_channel_live_chat":
+      dispatch(
+        receivedJoinChannelCall({
+          roomId: data.room_id,
+          calledRoomId: data.room_id,
+          calledServerId: data.server_id,
+          calledChannelId: data.channel_id,
+          calledChannelName: data.channel_name,
+        })
+      );
+      break;
+
     case "join_live_chat":
       dispatch(joinCall({ roomId: data.room_id }));
+      break;
+
+    case "post_channel_message":
+      dispatch(
+        postChannelMessage({
+          server_id: data.server_id,
+          channel_id: data.channel_id,
+          message: data.message,
+        })
+      );
+      break;
+
+    case "update_channel_message":
+      dispatch(
+        updateChannelMessage({
+          server_id: data.server_id,
+          channel_id: data.channel_id,
+          message: data.message,
+        })
+      );
+      break;
+
+    case "delete_channel_message":
+      dispatch(
+        deleteChannelMessage({
+          server_id: data.server_id,
+          channel_id: data.channel_id,
+          message: data.message,
+        })
+      );
+      break;
+
+    case "post_channel":
+      dispatch(
+        addChannel({
+          server_id: data.server_id,
+          channel: data.channel,
+        })
+      );
+      break;
+
+    case "update_channel":
+      dispatch(
+        updateChannel({
+          server_id: data.server_id,
+          channel: data.channel,
+        })
+      );
+      break;
+
+    case "delete_channel":
+      dispatch(
+        deleteChannel({
+          server_id: data.server_id,
+          channel: data.channel,
+        })
+      );
       break;
 
     default:

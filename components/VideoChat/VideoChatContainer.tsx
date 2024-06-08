@@ -9,16 +9,29 @@ import "./videoChat.global.css";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import FullScreenButton from "./FullScreenButton";
 import { useEffect, useRef, useState } from "react";
-import { leaveCall } from "@/lib/store/features/videoChat/videoChatSlice";
+import {
+  leaveCall,
+  rejectCall,
+} from "@/lib/store/features/videoChat/videoChatSlice";
 
 type CreateVideoChatContainerType = {
   containerType: "create_live_chat";
   userName: string;
 };
 
+type CreateChannelVideoChatContainerType = {
+  containerType: "create_channel_live_chat";
+  server_id: number;
+  channel_id: number;
+};
+
 type JoinVideoChatContainerType = {
   containerType: "join_live_chat";
-  userName: string;
+  room_id: string;
+};
+
+type JoinChannelVideoChatContainerType = {
+  containerType: "join_channel_live_chat";
   room_id: string;
 };
 
@@ -30,7 +43,9 @@ type VideoChatContainerType = {
   children: React.ReactNode;
 } & (
   | CreateVideoChatContainerType
+  | CreateChannelVideoChatContainerType
   | JoinVideoChatContainerType
+  | JoinChannelVideoChatContainerType
   | LiveVideoChatContainerType
 );
 
@@ -140,6 +155,48 @@ const VideoChatContainer = (props: VideoChatContainerType) => {
       );
       break;
 
+    case "create_channel_live_chat":
+      buttonGroup = (
+        <>
+          <button
+            className="primary icon-button"
+            style={{ width: "auto", borderRadius: 7 }}
+            onClick={(event) => {
+              const wsMessagePayload = {
+                operation_type: "create",
+                payload: {
+                  server_id: props.server_id,
+                  channel_id: props.channel_id,
+                },
+              };
+
+              dispatch({
+                type: "WEBSOCKET_SEND_MESSAGE",
+                payload: JSON.stringify(wsMessagePayload),
+              });
+            }}
+          >
+            Start Call
+          </button>
+          <button
+            className="icon-button"
+            style={{
+              width: "auto",
+              borderRadius: 7,
+              backgroundColor: "var(--error-background-color)",
+              marginRight: "auto",
+            }}
+            onClick={(event) => {
+              dispatch(leaveCall());
+            }}
+          >
+            Cancel
+          </button>
+        </>
+      );
+      break;
+
+    case "join_channel_live_chat":
     case "join_live_chat":
       buttonGroup = (
         <>
@@ -180,7 +237,9 @@ const VideoChatContainer = (props: VideoChatContainerType) => {
               backgroundColor: "var(--error-background-color)",
               marginRight: "auto",
             }}
-            onClick={(event) => {}}
+            onClick={(event) => {
+              dispatch(rejectCall());
+            }}
           >
             <svg
               stroke="currentColor"

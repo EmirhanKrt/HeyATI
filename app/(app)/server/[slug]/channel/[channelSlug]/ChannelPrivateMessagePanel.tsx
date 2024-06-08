@@ -23,10 +23,14 @@ import { selectColor } from "@/lib/generateBackgroundColorByUserName";
 import PopUp from "@/components/PopUp";
 import { getBaseUrl } from "@/lib/api";
 import Form from "@/components/Form";
-import { LoadingCircle } from "@/components/LoadingCircle";
 import { ChannelChat } from "@/components/Chat/ChannelChat";
 import useChannelMessages from "@/lib/hooks/useChannelMessages";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import axios from "axios";
+import {
+  deleteChannelMessage,
+  updateChannelMessage,
+} from "@/lib/store/features/server/serverSlice";
 
 const MessageHeader = ({
   shouldRenderPhoto,
@@ -266,17 +270,21 @@ const MessageDateGroup = ({
 
   const handleDeleteMessage = async (channel_message_id: number) => {
     try {
-      const request = await fetch(
-        `/api/server/${targetChannel.server_id}/channel/${targetChannel.channel_id}/message/${channel_message_id}`,
-        {
-          method: "DELETE",
-        }
-      ).then((data) => data.json());
+      const request = await axios.delete(
+        `/api/server/${targetChannel.server_id}/channel/${targetChannel.channel_id}/message/${channel_message_id}`
+      );
 
-      if (request.success) {
+      if (request.status === 200) {
+        dispatch(
+          deleteChannelMessage({
+            server_id: targetChannel.server_id,
+            channel_id: targetChannel.channel_id,
+            message: request.data.data.message,
+          })
+        );
       }
     } catch (error) {
-      console.error("Error occured on uploading file. Error:", error);
+      console.error("Error occured on delete message. Error:", error);
     }
   };
 
@@ -293,22 +301,26 @@ const MessageDateGroup = ({
     event.preventDefault();
 
     try {
-      const request = await fetch(
+      const request = await axios.put(
         `/api/server/${targetChannel.server_id}/channel/${targetChannel.channel_id}/message/${editingMessageId}`,
         {
-          method: "PUT",
-          body: JSON.stringify({
-            channel_message_content: editedContent,
-          }),
+          channel_message_content: editedContent,
         }
-      ).then((data) => data.json());
+      );
 
-      if (request.success) {
+      if (request.status === 200) {
+        dispatch(
+          updateChannelMessage({
+            server_id: targetChannel.server_id,
+            channel_id: targetChannel.channel_id,
+            message: request.data.data.message,
+          })
+        );
       }
 
       setEditingMessageId(0);
     } catch (error) {
-      console.error("Error occured on uploading file. Error:", error);
+      console.error("Error occured on update message. Error:", error);
     }
   };
 

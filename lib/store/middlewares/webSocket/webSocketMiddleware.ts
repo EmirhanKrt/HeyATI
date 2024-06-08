@@ -3,6 +3,7 @@
 import { MiddlewareAPI, Middleware, UnknownAction } from "@reduxjs/toolkit";
 import { TRootState } from "../../store";
 import webSocketMessageHandler from "./webSocketMessageHandler";
+import { getHostForWS } from "@/lib/api";
 
 const wsConnect = "WEBSOCKET_CONNECT";
 const wsSendMessage = "WEBSOCKET_SEND_MESSAGE";
@@ -66,7 +67,7 @@ export const webSocketMiddleware = (
             socket.close();
           }
 
-          socket = new WebSocket("ws://localhost:3001/ws");
+          socket = new WebSocket(`${getHostForWS()}/ws`);
 
           socket.onopen = onOpen;
           socket.onclose = onClose;

@@ -22,6 +22,7 @@ import {
 } from "@/server/services";
 import { ParamsValidationError } from "@/server/errors";
 import WebSocketManager from "../websocket-data";
+import { broadcastToServer } from "@/lib/brodcastToServer";
 
 type ContextWithSenderAndTargetChannel = ContextWithUser & {
   channel: SafeChannelType;
@@ -162,6 +163,19 @@ const crudChannelMessageRoutes = new Elysia({
         responseMessageData.files = insertedFileList;
       }
 
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(wsManager, channel.server_id, senderUser.user_name, {
+        success: true,
+        message: "Message sent successfully.",
+        data: {
+          type: "post_channel_message",
+          server_id: channel.server_id,
+          channel_id: channel.channel_id,
+          message: responseMessageData,
+        },
+      });
+
       return {
         success: true,
         message: "Message sent successfully.",
@@ -242,6 +256,19 @@ const crudChannelMessageRoutes = new Elysia({
         files: fileList ? fileList.map(FileService.toSafeFileType) : [],
       };
 
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(wsManager, channel.server_id, user.user_name, {
+        success: true,
+        message: "Message updated successfully.",
+        data: {
+          type: "update_channel_message",
+          server_id: channel.server_id,
+          channel_id: channel.channel_id,
+          message: responseMessageData,
+        },
+      });
+
       return {
         success: true,
         message: "Message updated successfully.",
@@ -257,7 +284,7 @@ const crudChannelMessageRoutes = new Elysia({
   .delete(
     `/:${channelMessageTable.channel_message_id.name}`,
     async (context) => {
-      const { message, channel } = context as ContextWithMessage;
+      const { message, channel, user } = context as ContextWithMessage;
 
       const fileList = await ChannelMessageService.getFilesByMessageId(
         message.channel_message_id
@@ -277,6 +304,19 @@ const crudChannelMessageRoutes = new Elysia({
         ...deletedMessage,
         files: fileList ? fileList.map(FileService.toSafeFileType) : [],
       };
+
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(wsManager, channel.server_id, user.user_name, {
+        success: true,
+        message: "Message deleted successfully.",
+        data: {
+          type: "delete_channel_message",
+          server_id: channel.server_id,
+          channel_id: channel.channel_id,
+          message: responseMessageData,
+        },
+      });
 
       return {
         success: true,

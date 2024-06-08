@@ -9,9 +9,10 @@ const schemaRules = {
 
 const channelSelectSchema = createSelectSchema(channelTable, schemaRules);
 
-export const channelSelectSchemaWithoutSensitiveData = t.Omit(channelSelectSchema, [
-  "updated_at",
-]);
+export const channelSelectSchemaWithoutSensitiveData = t.Omit(
+  channelSelectSchema,
+  ["updated_at"]
+);
 
 const channelInsertSchema = createInsertSchema(channelTable, schemaRules);
 
@@ -22,7 +23,7 @@ const channelInsertSchemaWithoutChannelId = t.Omit(channelInsertSchema, [
 ]);
 
 const channelUpdateSchemaWithoutChannelId = t.Object({
-  channel_name: t.Optional(schemaRules.channel_name),
+  channel_name: schemaRules.channel_name,
 });
 
 const channelSuccessResponseBodyDataSchema = t.Object({

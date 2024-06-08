@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useAppSelector } from "../store/hooks";
+import { getHostForWS } from "../api";
 
 export const useWebSocket = (onMessage: (message: any) => void) => {
   const socketRef = useRef<WebSocket | null>(null);
@@ -8,7 +9,7 @@ export const useWebSocket = (onMessage: (message: any) => void) => {
   useEffect(() => {
     if (!roomId) return;
 
-    const ws = new WebSocket(`ws://localhost:3001/ws/${roomId}`);
+    const ws = new WebSocket(`${getHostForWS()}/ws/${roomId}`);
 
     ws.onopen = () => {
       console.log("WebSocket connected");
