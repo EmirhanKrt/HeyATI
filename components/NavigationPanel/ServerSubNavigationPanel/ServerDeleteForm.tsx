@@ -1,44 +1,42 @@
 "use client";
 
 import { ChangeEventHandler, FormEvent, useState } from "react";
+import axios from "axios";
 
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useAppSelector } from "@/lib/store/hooks";
 import { ServerDetailedDataType } from "@/server/models";
 import { ValidationErrorData } from "@/server/types";
 
 import Form from "@/components/Form";
-import { deleteChannel } from "@/lib/store/features/server/serverSlice";
-import axios from "axios";
+import { useRouter } from "next/navigation";
 
 type ErrorMessageObjectType = {
-  channel_name: string | null;
+  server_name: string | null;
 };
 
 const errorMessageInitialState = {
-  channel_name: null,
+  server_name: null,
 };
 
-const ChannelDeleteForm = ({
-  server_id,
-  channel_id,
-}: {
-  server_id: number;
-  channel_id: number;
-}) => {
-  const dispatch = useAppDispatch();
+const ServerDeleteForm = ({ server_id }: { server_id: number }) => {
+  const router = useRouter();
 
   const server: ServerDetailedDataType = useAppSelector(
     (state) => state.server[server_id]
   );
 
-  const channel = server.channels.find(
-    (channelIteration) => channelIteration.channel_id === channel_id
+  const currentUserName = useAppSelector((state) => state.user.user_name);
+
+  const serverUser = server.users.find(
+    (user) => user.user_name === currentUserName
   );
 
-  const [initial_channel_name, setInitialChannelName] = useState(
-    channel!.channel_name
+  if (!serverUser || serverUser.role !== "owner") return null;
+
+  const [initial_server_name, setInitialServerName] = useState(
+    server.server_name
   );
-  const [channel_name, setServerName] = useState("");
+  const [server_name, setServerName] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<ErrorMessageObjectType>(
@@ -57,29 +55,24 @@ const ChannelDeleteForm = ({
     setStatus(null);
     setStatusMessage("");
 
-    if (channel_name !== initial_channel_name) {
+    if (server_name !== initial_server_name) {
       setStatus(false);
-      setStatusMessage("Please provide channel name successfully.");
+      setStatusMessage("Please provide server name successfully.");
 
       setIsLoading(false);
       return;
     }
 
     try {
-      const request = await axios.delete(
-        `/api/server/${server_id}/channel/${channel_id}`
-      );
+      const request = await axios.delete(`/api/server/${server_id}`);
 
       if (request.status === 200) {
         setStatusMessage(request.data.message);
         setStatus(true);
 
-        dispatch(
-          deleteChannel({
-            server_id: server_id,
-            channel: request.data.data.channel,
-          })
-        );
+        setTimeout(() => {
+          router.push(`/`);
+        }, 1000);
       }
     } catch (error) {
       const {
@@ -106,7 +99,7 @@ const ChannelDeleteForm = ({
     setIsLoading(false);
   };
 
-  const channel_name_change: ChangeEventHandler<HTMLInputElement> = (event) => {
+  const server_name_change: ChangeEventHandler<HTMLInputElement> = (event) => {
     setServerName(event.target.value);
     setErrorMessage((err) => ({ ...err, first_name: null }));
   };
@@ -119,20 +112,20 @@ const ChannelDeleteForm = ({
       <Form.StatusMessage status={status} message={statusMessage} />
       <Form.Body>
         <p>
-          This channel will be deleted, along with all of its Messages and
-          Events.
+          This server will be deleted, along with all of its Channels, Invites,
+          Messages and Events.
         </p>
         <p>Warning: This action is not reversible. Please be certain.</p>
-        <p>Enter the channel name {initial_channel_name} to continue:</p>
+        <p>Enter the server name {initial_server_name} to continue:</p>
         <Form.Input
-          title="Channel Name"
+          title="Server Name"
           type="text"
-          id="channel_name"
-          name="channel_name"
+          id="server_name"
+          name="server_name"
           placeholder="Enter channel name"
-          value={channel_name}
-          onChange={channel_name_change}
-          errorMessage={errorMessage.channel_name}
+          value={server_name}
+          onChange={server_name_change}
+          errorMessage={errorMessage.server_name}
         />
 
         <div
@@ -158,4 +151,4 @@ const ChannelDeleteForm = ({
   );
 };
 
-export default ChannelDeleteForm;
+export default ServerDeleteForm;

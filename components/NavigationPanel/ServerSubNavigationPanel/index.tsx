@@ -134,12 +134,31 @@ const ServerSubNavigationPanel = ({
 
   if (!isServerFound) {
     return (
-      <span
-        className="error-background error-text"
-        style={{ padding: 12, margin: 8 }}
-      >
-        Server not found!
-      </span>
+      <section className="navigation-subpanel-container" style={style}>
+        <div className="navigation-header" style={{ display: "flex", gap: 8 }}>
+          <span
+            style={{
+              flexGrow: 1,
+              color: "var(--title-color)",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            Server not found!
+          </span>
+        </div>
+
+        <span
+          className="error-background error-text"
+          style={{ margin: "0 12px" }}
+        >
+          Server not found!
+        </span>
+        <div style={{ flexGrow: 1 }}></div>
+        <UserAvatar />
+      </section>
     );
   }
 
@@ -156,7 +175,7 @@ const ServerSubNavigationPanel = ({
             position: "relative",
           }}
         >
-          {server.server_name}
+          {server && server.server_name}
         </span>
         {userRole === "owner" && <ServerSettings server_id={activeServerId} />}
       </div>
@@ -191,6 +210,7 @@ const ServerSubNavigationPanel = ({
             gap: 16,
             color: "var(--title-color)",
             alignItems: "center",
+            height: 20,
           }}
         >
           <span>Channels</span>

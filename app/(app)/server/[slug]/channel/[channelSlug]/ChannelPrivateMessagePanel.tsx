@@ -499,9 +499,7 @@ const ChannelPrivateMessagePanel = ({
 
   if (!isChannelFound) {
     container = (
-      <span className="error-background error-text" style={{ padding: 12 }}>
-        Channel not found!
-      </span>
+      <span className="error-background error-text">Channel not found!</span>
     );
   } else if (isMessageFound) {
     container = Object.keys(targetChannel.messages)

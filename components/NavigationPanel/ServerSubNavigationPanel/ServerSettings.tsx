@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import PopUp from "@/components/PopUp";
 import ServerUpdateForm from "./ServerUpdateForm";
+import ServerDeleteForm from "./ServerDeleteForm";
 
 const ServerSettings = ({ server_id }: { server_id: number }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,6 +31,13 @@ const ServerSettings = ({ server_id }: { server_id: number }) => {
         setOpenState={setIsOpen}
       >
         <ServerUpdateForm server_id={server_id} />
+        <hr
+          style={{
+            marginTop: 20,
+            border: "1px solid var(--input-border-color)",
+          }}
+        />
+        <ServerDeleteForm server_id={server_id} />
       </PopUp>
     </>
   );

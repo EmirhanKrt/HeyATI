@@ -462,9 +462,7 @@ const UserPrivateMessagePanel = ({
 
   if (!isUserFound) {
     container = (
-      <span className="error-background error-text" style={{ padding: 12 }}>
-        User not found!
-      </span>
+      <span className="error-background error-text">User not found!</span>
     );
   } else if (isMessageFound) {
     container = Object.keys(targetUser.messages)

@@ -40,7 +40,7 @@ const ServerUserDetailPanel = ({
 
   if (!isServerFound) {
     container = (
-      <span className="error-background error-text" style={{ padding: 12 }}>
+      <span className="error-background error-text" style={{ margin: 4 }}>
         Server not found!
       </span>
     );

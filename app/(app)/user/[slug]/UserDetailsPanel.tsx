@@ -28,9 +28,7 @@ const UserDetailsPanel = ({
 
   if (!isUserFound) {
     container = (
-      <span className="error-background error-text" style={{ padding: 12 }}>
-        User not found!
-      </span>
+      <span className="error-background error-text">User not found!</span>
     );
   } else {
     const userFullName = targetUser.first_name + " " + targetUser.last_name;

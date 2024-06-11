@@ -20,7 +20,7 @@ const ServerHomeAppPanel = ({
 
   if (!isServerFound) {
     container = (
-      <span className="error-background error-text" style={{ padding: 12 }}>
+      <span className="error-background error-text" style={{ margin: 12 }}>
         Server not found!
       </span>
     );
