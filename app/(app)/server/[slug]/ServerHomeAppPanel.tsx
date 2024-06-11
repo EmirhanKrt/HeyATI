@@ -1,5 +1,6 @@
 "use client";
 
+import ServerDashboardCalendar from "@/components/Calendar/ServerDashboardCalendar";
 import { LoadingCircle } from "@/components/LoadingCircle";
 import { ServerDetailedDataType } from "@/server/models";
 
@@ -26,12 +27,13 @@ const ServerHomeAppPanel = ({
     );
   } else {
     container = (
-      <>
-        <h4>Server Name: {targetServer.server_name}</h4>
+      <div style={{ padding: 12 }}>
+        <h4>{targetServer.server_name}</h4>
         {targetServer.server_description !== "" && (
-          <p>Server Description: {targetServer.server_description}</p>
+          <p>{targetServer.server_description}</p>
         )}
-      </>
+        <ServerDashboardCalendar server={targetServer}/>
+      </div>
     );
   }
 

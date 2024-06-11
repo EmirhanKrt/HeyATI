@@ -70,6 +70,7 @@ export abstract class ServerService {
                       'event_title', e.event_title,
                       'event_description', e.event_description,
                       'owner_id', e.owner_id,
+                      'channel_id', e.channel_id,
                       'event_start_date', e.event_start_date,
                       'event_finish_date', e.event_finish_date,
                       'created_at', e.created_at
@@ -196,6 +197,7 @@ export abstract class ServerService {
                       'event_title', e.event_title,
                       'event_description', e.event_description,
                       'owner_id', e.owner_id,
+                      'channel_id', e.channel_id,
                       'event_start_date', e.event_start_date,
                       'event_finish_date', e.event_finish_date,
                       'created_at', e.created_at

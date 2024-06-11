@@ -11,6 +11,7 @@ import PopUp from "@/components/PopUp";
 import ChannelUpdateForm from "./ChannelUpdateForm";
 import ChannelDeleteForm from "./ChannelDeleteForm";
 import ChannelCreateForm from "./ChannelCreateForm";
+import Invites from "./Invites";
 
 const ChannelListItem = ({
   activeServerId,
@@ -194,7 +195,7 @@ const ServerSubNavigationPanel = ({
               false ? "active" : ""
             }`}
           >
-            <a>Invites</a>
+            <Invites server_id={activeServerId} serverUsers={server.users} />
           </li>
         </ul>
       </nav>

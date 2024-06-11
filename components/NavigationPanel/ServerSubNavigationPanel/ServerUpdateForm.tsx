@@ -102,14 +102,14 @@ const ServerUpdateForm = ({ server_id }: { server_id: number }) => {
 
   const server_name_change: ChangeEventHandler<HTMLInputElement> = (event) => {
     setServerName(event.target.value);
-    setErrorMessage((err) => ({ ...err, first_name: null }));
+    setErrorMessage((err) => ({ ...err, server_name: null }));
   };
 
   const server_description_change: ChangeEventHandler<HTMLInputElement> = (
     event
   ) => {
     setServerDescription(event.target.value);
-    setErrorMessage((err) => ({ ...err, last_name: null }));
+    setErrorMessage((err) => ({ ...err, server_description: null }));
   };
 
   return (

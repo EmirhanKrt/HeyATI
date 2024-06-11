@@ -84,7 +84,7 @@ const ChannelCreateForm = ({ server_id }: { server_id: number }) => {
 
   const channel_name_change: ChangeEventHandler<HTMLInputElement> = (event) => {
     setServerName(event.target.value);
-    setErrorMessage((err) => ({ ...err, first_name: null }));
+    setErrorMessage((err) => ({ ...err, channel_name: null }));
   };
 
   return (

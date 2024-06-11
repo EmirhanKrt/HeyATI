@@ -363,6 +363,17 @@ main {
   background-color: var(--background-color-5);
 }
 
+.message-content {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.message-content span {
+  font-size: 10px;
+  line-height: 24px;
+}
 .message-container-avatar {
   width: 24px;
   min-width: 24px;

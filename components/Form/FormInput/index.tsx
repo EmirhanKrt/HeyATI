@@ -7,7 +7,7 @@ type FormInputPropsType =
       name: string;
       title: string;
       id: string;
-      value: string;
+      value: any;
       required?: boolean;
     } & (
       | {
@@ -34,6 +34,7 @@ export const FormInput = (props: FormInputPropsType) => {
     required: boolean;
     disabled: boolean;
     onChange: ChangeEventHandler<HTMLInputElement>;
+    step?: number;
   } = {
     className: "",
     type: props.type,
@@ -47,6 +48,8 @@ export const FormInput = (props: FormInputPropsType) => {
     disabled: false,
     onChange: () => {},
   };
+
+  if (props.type === "datetime-local") formInputProps.step = 1;
 
   if ("isDisabled" in props) {
     formInputProps.disabled = true;

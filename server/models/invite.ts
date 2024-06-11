@@ -3,48 +3,50 @@ import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { serverInviteCodeTable } from "@/server/db/schema";
 import { generateSuccessReponseBodySchema } from "@/server/utils";
 
-const inviteSchemaRules = {
-  server_id: t.Integer(),
-  owner_id: t.Integer(),
-  server_invite_code: t.String(),
-  max_use_count: t.Integer(),
-  due_date: t.String(),
-  total_use_count: t.Integer(),
-  is_in_use: t.Boolean(),
-};
+export const inviteSelectSchema = createSelectSchema(serverInviteCodeTable);
 
-export const inviteSelectSchema = createSelectSchema(serverInviteCodeTable, inviteSchemaRules);
+export const inviteSchemaWithoutSensitiveData = t.Omit(inviteSelectSchema, [
+  "updated_at",
+]);
 
-export const inviteInsertSchema = createInsertSchema(serverInviteCodeTable, inviteSchemaRules);
+export const inviteInsertSchema = createInsertSchema(serverInviteCodeTable);
 
-const inviteUpdateRequestBodySchema = t.Object({
-  max_use_count: t.Optional(inviteSchemaRules.max_use_count),
-  due_date: t.Optional(inviteSchemaRules.due_date),
-  is_in_use: t.Optional(inviteSchemaRules.is_in_use),
+const inviteInsertSchemaWithoutServerInviteCodeId = t.Omit(inviteInsertSchema, [
+  "server_invite_code_id",
+  "is_in_use",
+  "total_use_count",
+  "created_at",
+  "updated_at",
+]);
+
+export const inviteSuccessResponseBodyDataSchema = t.Object({
+  invite: inviteSchemaWithoutSensitiveData,
 });
 
-const inviteSuccessResponseBodyDataSchema = t.Object({
-  invite: inviteSelectSchema,
+const inviteIdRequestParamsSchema = t.Object({
+  invite_id: t.String({ format: "uuid" }),
 });
 
-const inviteByIdRequestParamsSchema = t.Object({
-  invite_id: t.String(),
-});
-
+const inviteSuccessResponseBodySchema = generateSuccessReponseBodySchema(
+  inviteSuccessResponseBodyDataSchema
+);
 const inviteByServerIdRequestParamsSchema = t.Object({
   server_id: t.String(),
 });
 
-const inviteSuccessResponseBodySchema = generateSuccessReponseBodySchema(inviteSuccessResponseBodyDataSchema);
-
 export type InviteType = Static<typeof inviteSelectSchema>;
-export type InviteInsertType = Static<typeof inviteInsertSchema>;
-export type InviteUpdatePayloadType = Static<typeof inviteUpdateRequestBodySchema>;
-export type InviteSuccessResponseType = Static<typeof inviteSuccessResponseBodySchema>;
+
+export type SafeInviteType = Static<typeof inviteSchemaWithoutSensitiveData>;
+
+export type InviteInsertPayloadType = Static<
+  typeof inviteInsertSchemaWithoutServerInviteCodeId
+>;
 
 export const inviteModel = new Elysia().model({
   "invite.all.response.body": inviteSuccessResponseBodySchema,
-  "invite.put.request.body": inviteUpdateRequestBodySchema,
-  "invite.all.invite_id.request.params": inviteByIdRequestParamsSchema,
+  "invite.post.request.body": t.Optional(
+    t.Pick(inviteInsertSchema, ["max_use_count", "due_date"])
+  ),
+  "invite.all.invite_id.request.params": inviteIdRequestParamsSchema,
   "invite.all.server_id.request.params": inviteByServerIdRequestParamsSchema,
 });

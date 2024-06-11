@@ -1,3 +1,7 @@
+.rbc-calendar {
+  min-width: 280px;
+}
+
 .rbc-calendar button {
   width: unset;
   border-radius: 0;

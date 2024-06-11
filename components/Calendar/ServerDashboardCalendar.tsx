@@ -8,7 +8,6 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar.global.css";
 import PopUp from "../PopUp";
 import {
-  ChannelMessageSuccessResponseBodyDataType,
   SafeChannelType,
   SafeEventType,
   ServerDetailedDataType,
@@ -25,9 +24,12 @@ type BigCalendarEventType = {
 
 const localizer = momentLocalizer(moment);
 
-const DashboardCalendar = () => {
-  const serverList = useAppSelector((state) => state.server);
-
+const ServerDashboardCalendar = ({
+  server,
+}: {
+  server: ServerDetailedDataType;
+}) => {
+  console.log(server);
   const [eventState, setEventState] = useState<BigCalendarEventType[]>([]);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -37,29 +39,23 @@ const DashboardCalendar = () => {
 
   useEffect(() => {
     const generateEventState = () => {
-      const events: BigCalendarEventType[] = [];
+      const eventOfChannel = server.channels.flatMap((channel) =>
+        channel.events.map(
+          (event): BigCalendarEventType => ({
+            id: event.event_id,
+            title: event.event_title,
+            start: new Date(event.event_start_date),
+            end: new Date(event.event_finish_date),
+            description: event.event_description,
+          })
+        )
+      );
 
-      Object.entries(serverList).forEach(([server_id, server]) => {
-        const eventOfChannel = server.channels.flatMap((channel) =>
-          channel.events.map(
-            (event): BigCalendarEventType => ({
-              id: event.event_id,
-              title: event.event_title,
-              start: new Date(event.event_start_date),
-              end: new Date(event.event_finish_date),
-              description: event.event_description,
-            })
-          )
-        );
-
-        events.push(...eventOfChannel);
-      });
-
-      setEventState(events);
+      setEventState(eventOfChannel);
     };
 
-    if (serverList) generateEventState();
-  }, [serverList]);
+    if (server) generateEventState();
+  }, [server]);
 
   const handleEventClick = (event: BigCalendarEventType) => {
     setSelectedEvent(event);
@@ -67,7 +63,7 @@ const DashboardCalendar = () => {
   };
 
   return (
-    <div style={{ padding: 12 }}>
+    <div>
       <Calendar
         localizer={localizer}
         events={eventState}
@@ -92,17 +88,15 @@ const DashboardCalendar = () => {
               null;
             let event: null | SafeEventType = null;
 
-            Object.entries(serverList).map(([server_id, server]) => {
-              server.channels.forEach((channel) => {
-                const eventInSlice = channel.events.find(
-                  (event) => event.event_id === selectedEvent.id
-                );
-                if (eventInSlice) {
-                  eventServer = server;
-                  eventChannel = channel;
-                  event = eventInSlice;
-                }
-              });
+            server.channels.forEach((channel) => {
+              const eventInSlice = channel.events.find(
+                (event) => event.event_id === selectedEvent.id
+              );
+              if (eventInSlice) {
+                eventServer = server;
+                eventChannel = channel;
+                event = eventInSlice;
+              }
             });
 
             if (
@@ -160,4 +154,4 @@ const DashboardCalendar = () => {
   );
 };
 
-export default DashboardCalendar;
+export default ServerDashboardCalendar;

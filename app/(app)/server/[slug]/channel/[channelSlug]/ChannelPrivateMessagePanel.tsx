@@ -96,6 +96,7 @@ const MessageContent = ({
     )}
     <p className="message-content">
       <MarkdownRenderer input={message.channel_message_content} />
+      {message.is_edited && <span>( edited )</span>}
     </p>
   </div>
 );

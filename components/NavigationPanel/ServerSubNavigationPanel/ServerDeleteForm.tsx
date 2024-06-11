@@ -31,8 +31,6 @@ const ServerDeleteForm = ({ server_id }: { server_id: number }) => {
     (user) => user.user_name === currentUserName
   );
 
-  if (!serverUser || serverUser.role !== "owner") return null;
-
   const [initial_server_name, setInitialServerName] = useState(
     server.server_name
   );
@@ -45,6 +43,8 @@ const ServerDeleteForm = ({ server_id }: { server_id: number }) => {
 
   const [status, setStatus] = useState<boolean | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
+
+  if (!serverUser || serverUser.role !== "owner") return null;
 
   const handleSubmit: (
     event: FormEvent<HTMLFormElement>
@@ -101,7 +101,7 @@ const ServerDeleteForm = ({ server_id }: { server_id: number }) => {
 
   const server_name_change: ChangeEventHandler<HTMLInputElement> = (event) => {
     setServerName(event.target.value);
-    setErrorMessage((err) => ({ ...err, first_name: null }));
+    setErrorMessage((err) => ({ ...err, server_name: null }));
   };
 
   return (
@@ -122,7 +122,7 @@ const ServerDeleteForm = ({ server_id }: { server_id: number }) => {
           type="text"
           id="server_name"
           name="server_name"
-          placeholder="Enter channel name"
+          placeholder="Enter server name"
           value={server_name}
           onChange={server_name_change}
           errorMessage={errorMessage.server_name}

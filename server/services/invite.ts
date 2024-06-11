@@ -4,12 +4,12 @@ import { and, eq } from "drizzle-orm";
 
 export const InviteService = {
   async createInvite(data: any) {
-    const invite = await db
+    const invites = await db
       .insert(serverInviteCodeTable)
       .values(data)
-      .returning()
-      .then((rows) => rows[0]);
-    return invite;
+      .returning();
+
+    return invites[0];
   },
 
   async updateInvite(data: any, invite_id: number) {
@@ -45,7 +45,50 @@ export const InviteService = {
     return invite[0];
   },
 
-  toSafeInviteType(invite: any) {
+  async getInviteByInviteId(server_id: number, server_invite_code_id: number) {
+    const invite = await db
+      .select()
+      .from(serverInviteCodeTable)
+      .where(
+        and(
+          eq(serverInviteCodeTable.server_id, server_id),
+          eq(
+            serverInviteCodeTable.server_invite_code_id,
+            server_invite_code_id
+          ),
+          eq(serverInviteCodeTable.is_in_use, true)
+        )
+      );
+
+    return invite[0];
+  },
+
+  async getSelfInvites(user_id: number, server_id: number) {
+    const invite = await db
+      .select()
+      .from(serverInviteCodeTable)
+      .where(
+        and(
+          eq(serverInviteCodeTable.owner_id, user_id),
+          eq(serverInviteCodeTable.server_id, server_id),
+          eq(serverInviteCodeTable.is_in_use, true)
+        )
+      );
+
+    return invite;
+  },
+
+  async getServerInvites(server_id: number) {
+    const invite = await db
+      .select()
+      .from(serverInviteCodeTable)
+      .where(
+        and(
+          eq(serverInviteCodeTable.server_id, server_id),
+          eq(serverInviteCodeTable.is_in_use, true)
+        )
+      );
+
     return invite;
   },
 };

@@ -3,7 +3,7 @@ import NavigationPanel from "@/components/NavigationPanel";
 import { AppPanel } from "@/components/AppPanel";
 import ServerNavigationPanel from "@/components/NavigationPanel/ServerNavigationPanel";
 import { AppContentPanel } from "@/components/AppContentPanel";
-import DashboardCalendar from "@/components/DashboardCalendar";
+import DashboardCalendar from "@/components/Calendar/DashboardCalendar";
 
 const Dashboard = () => {
   return (
