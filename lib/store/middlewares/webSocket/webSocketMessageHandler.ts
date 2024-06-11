@@ -91,7 +91,7 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
       dispatch(joinCall({ roomId: data.room_id }));
       break;
 
-    case "post_channel_message":
+    case "post_server_channel_message":
       dispatch(
         postChannelMessage({
           server_id: data.server_id,
@@ -101,7 +101,7 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
       );
       break;
 
-    case "update_channel_message":
+    case "update_server_channel_message":
       dispatch(
         updateChannelMessage({
           server_id: data.server_id,
@@ -111,7 +111,7 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
       );
       break;
 
-    case "delete_channel_message":
+    case "delete_server_channel_message":
       dispatch(
         deleteChannelMessage({
           server_id: data.server_id,
@@ -121,7 +121,7 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
       );
       break;
 
-    case "post_channel":
+    case "post_server_channel":
       dispatch(
         addChannel({
           server_id: data.server_id,
@@ -130,7 +130,7 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
       );
       break;
 
-    case "update_channel":
+    case "update_server_channel":
       dispatch(
         updateChannel({
           server_id: data.server_id,
@@ -139,7 +139,7 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
       );
       break;
 
-    case "delete_channel":
+    case "delete_server_channel":
       dispatch(
         deleteChannel({
           server_id: data.server_id,

@@ -58,7 +58,7 @@ const channelIndexRoutes = new Elysia({
           success: true,
           message: "Channel created successfully.",
           data: {
-            type: "post_channel",
+            type: "post_server_channel",
             server_id: channel.server_id,
             channel: ChannelService.toSafeChannelType(channel!),
           },
@@ -126,7 +126,7 @@ const channelIndexRoutes = new Elysia({
           success: true,
           message: "Updated channel successfully.",
           data: {
-            type: "update_channel",
+            type: "update_server_channel",
             server_id: context.channel.server_id,
             channel: ChannelService.toSafeChannelType(updatedChannel!),
           },
@@ -166,7 +166,7 @@ const channelIndexRoutes = new Elysia({
           success: true,
           message: "Deleted channel successfully.",
           data: {
-            type: "delete_channel",
+            type: "delete_server_channel",
             server_id: context.channel.server_id,
             channel: ChannelService.toSafeChannelType(deletedChannel!),
           },

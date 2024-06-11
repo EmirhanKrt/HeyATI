@@ -1,7 +1,7 @@
 "use client";
 
 import "regenerator-runtime/runtime";
-import { ChangeEventHandler, useEffect, useState } from "react";
+import { ChangeEventHandler, useCallback, useEffect, useState } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
@@ -17,10 +17,15 @@ const AIAssistant = () => {
   >([]);
 
   const [messages, setMessages] = useState<
-    Record<string, { fromUser: boolean; content: string }>
+    Record<
+      string,
+      { fromUser: boolean; content: string; isGenerationFinished: boolean }
+    >
   >({});
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState("");
   const { transcript, resetTranscript, listening } = useSpeechRecognition();
 
   const [currentMessageContent, setCurrentMessageContent] =
@@ -31,11 +36,15 @@ const AIAssistant = () => {
   }, [transcript]);
 
   const startListening = () => {
+    window.speechSynthesis.cancel();
+    handleSpeak("Dinliyorum");
     resetTranscript();
     SpeechRecognition.startListening({ continuous: true });
   };
 
   const stopListening = async () => {
+    window.speechSynthesis.cancel();
+    handleSpeak("Araştırıyorum");
     const messageContent = currentMessageContent;
     SpeechRecognition.stopListening();
 
@@ -48,6 +57,7 @@ const AIAssistant = () => {
       [message_id]: {
         fromUser: true,
         content: messageContent,
+        isGenerationFinished: true,
       },
     }));
 
@@ -69,6 +79,7 @@ const AIAssistant = () => {
       const textDecoder = new TextDecoder();
       let buffer = "";
       let accumulatedAssistantMessage = "";
+      let assistantMessageId = "";
 
       const readChunk = async () => {
         const { done, value } = await reader.read();
@@ -84,6 +95,17 @@ const AIAssistant = () => {
             assistantMessage,
           ]);
 
+          setMessages((prevMessages) => {
+            return {
+              ...prevMessages,
+              [assistantMessageId]: {
+                ...prevMessages[assistantMessageId],
+                isGenerationFinished: true,
+              },
+            };
+          });
+
+          handleSpeak(accumulatedAssistantMessage, assistantMessageId);
           return;
         }
 
@@ -99,6 +121,8 @@ const AIAssistant = () => {
             try {
               const dataObject = JSON.parse(dataMatch[1]);
 
+              if (!assistantMessageId) assistantMessageId = dataObject.id;
+
               setMessages((prevMessages) => {
                 const existingMessage =
                   prevMessages[dataObject.id]?.content || "";
@@ -110,7 +134,11 @@ const AIAssistant = () => {
 
                 return {
                   ...prevMessages,
-                  [dataObject.id]: { fromUser: false, content: newContent },
+                  [dataObject.id]: {
+                    fromUser: false,
+                    content: newContent,
+                    isGenerationFinished: false,
+                  },
                 };
               });
 
@@ -146,6 +174,50 @@ const AIAssistant = () => {
     HTMLTextAreaElement
   > = (event) => {
     setCurrentMessageContent(event.target.value);
+  };
+
+  const handleKeyDown = useCallback(
+    async (event: KeyboardEvent) => {
+      if (event.altKey && event.key === "c") {
+        if (!isExpanded) {
+          setIsExpanded(true);
+        }
+        console.log("alt+c pressed", isExpanded, listening);
+
+        if (!listening) {
+          startListening();
+        } else {
+          await stopListening();
+        }
+      }
+    },
+    [isExpanded, listening, setIsExpanded, startListening, stopListening]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  const handleSpeak = (text: string, messageId?: string) => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+
+    if (messageId) {
+      setSpeakingMessageId(messageId);
+    } else {
+      setSpeakingMessageId("");
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -204,13 +276,61 @@ const AIAssistant = () => {
                   return (
                     <div key={messageId} className={"ai-bot-message"}>
                       <MarkdownRenderer input={message.content} />
+
+                      {message.isGenerationFinished && (
+                        <div
+                          className="settings-icon-container"
+                          onClick={
+                            isSpeaking && speakingMessageId === messageId
+                              ? () => {
+                                  window.speechSynthesis.cancel();
+                                  setIsSpeaking(false);
+                                  setSpeakingMessageId("");
+                                }
+                              : () => handleSpeak(message.content, messageId)
+                          }
+                          style={{
+                            maxWidth: 24,
+                            width: 24,
+                            minWidth: 24,
+                            maxHeight: 24,
+                            height: 24,
+                            minHeight: 24,
+                          }}
+                        >
+                          {isSpeaking && speakingMessageId === messageId ? (
+                            <svg
+                              stroke="currentColor"
+                              fill="currentColor"
+                              strokeWidth="0"
+                              viewBox="0 0 16 16"
+                              height="1em"
+                              width="1em"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5"></path>
+                            </svg>
+                          ) : (
+                            <svg
+                              stroke="currentColor"
+                              fill="currentColor"
+                              strokeWidth="0"
+                              viewBox="0 0 16 16"
+                              height="1em"
+                              width="1em"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M11.536 14.01A8.47 8.47 0 0 0 14.026 8a8.47 8.47 0 0 0-2.49-6.01l-.708.707A7.48 7.48 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303z"></path>
+                              <path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.48 5.48 0 0 1 11.025 8a5.48 5.48 0 0 1-1.61 3.89z"></path>
+                              <path d="M8.707 11.182A4.5 4.5 0 0 0 10.025 8a4.5 4.5 0 0 0-1.318-3.182L8 5.525A3.5 3.5 0 0 1 9.025 8 3.5 3.5 0 0 1 8 10.475zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06"></path>
+                            </svg>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 }
               })}
-              {listening && transcript && (
-                <div className="user-message">{transcript}</div>
-              )}
             </div>
           )}
 

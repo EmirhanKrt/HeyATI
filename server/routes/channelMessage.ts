@@ -169,7 +169,7 @@ const crudChannelMessageRoutes = new Elysia({
         success: true,
         message: "Message sent successfully.",
         data: {
-          type: "post_channel_message",
+          type: "post_server_channel_message",
           server_id: channel.server_id,
           channel_id: channel.channel_id,
           message: responseMessageData,
@@ -262,7 +262,7 @@ const crudChannelMessageRoutes = new Elysia({
         success: true,
         message: "Message updated successfully.",
         data: {
-          type: "update_channel_message",
+          type: "update_server_channel_message",
           server_id: channel.server_id,
           channel_id: channel.channel_id,
           message: responseMessageData,
@@ -311,7 +311,7 @@ const crudChannelMessageRoutes = new Elysia({
         success: true,
         message: "Message deleted successfully.",
         data: {
-          type: "delete_channel_message",
+          type: "delete_server_channel_message",
           server_id: channel.server_id,
           channel_id: channel.channel_id,
           message: responseMessageData,
