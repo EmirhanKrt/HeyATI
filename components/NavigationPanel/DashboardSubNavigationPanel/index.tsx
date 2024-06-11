@@ -4,6 +4,7 @@ import Avatar from "@/components/Avatar";
 import { useAppSelector } from "@/lib/store/hooks";
 import Link from "next/link";
 import UserAvatar from "../ServerNavigationPanel/UserAvatar";
+import FindOrStartChat from "./FindOrStartChat";
 
 const DashboardSubNavigationPanel = ({
   active_user_name,
@@ -17,14 +18,7 @@ const DashboardSubNavigationPanel = ({
   return (
     <section className="navigation-subpanel-container">
       <div className="navigation-header">
-        <input
-          type="text"
-          placeholder="Find or start chat"
-          style={{
-            height: 28,
-            padding: "1px 6px",
-          }}
-        />
+        <FindOrStartChat />
       </div>
       <nav className="navigation-panel-navigation">
         <ul className="navigation-panel-subpanel-navigation-list">
