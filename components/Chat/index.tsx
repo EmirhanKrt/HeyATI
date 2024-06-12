@@ -13,6 +13,7 @@ import styles from "./component.module.css";
 import { FilePreview } from "./FilePreview";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { postMessage } from "@/lib/store/features/interactedUsers/interactedUsersSlice";
+import { SafeUserType } from "@/server/models";
 
 type ChatDisabledPropType = {
   disabled: true;
@@ -138,7 +139,7 @@ export const Chat = (props: ChatPropType) => {
       if (request.success) {
         dispatch(
           postMessage({
-            user_name: props.user_name,
+            user: { user_name: props.user_name } as SafeUserType,
             message: request.data.message,
           })
         );

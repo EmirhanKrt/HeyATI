@@ -12,6 +12,7 @@ import ChannelUpdateForm from "./ChannelUpdateForm";
 import ChannelDeleteForm from "./ChannelDeleteForm";
 import ChannelCreateForm from "./ChannelCreateForm";
 import Invites from "./Invites";
+import Events from "./Events";
 
 const ChannelListItem = ({
   activeServerId,
@@ -188,7 +189,7 @@ const ServerSubNavigationPanel = ({
               false ? "active" : ""
             } `}
           >
-            <a>Events</a>
+            <Events server={server} />
           </li>
           <li
             className={`navigation-panel-subpanel-navigation-list-item ${

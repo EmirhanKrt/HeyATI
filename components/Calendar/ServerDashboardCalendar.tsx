@@ -29,7 +29,6 @@ const ServerDashboardCalendar = ({
 }: {
   server: ServerDetailedDataType;
 }) => {
-  console.log(server);
   const [eventState, setEventState] = useState<BigCalendarEventType[]>([]);
 
   const [isOpen, setIsOpen] = useState(false);

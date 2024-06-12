@@ -182,8 +182,6 @@ const AIAssistant = () => {
         if (!isExpanded) {
           setIsExpanded(true);
         }
-        console.log("alt+c pressed", isExpanded, listening);
-
         if (!listening) {
           startListening();
         } else {

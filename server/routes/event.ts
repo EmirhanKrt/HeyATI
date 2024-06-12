@@ -1,9 +1,15 @@
 import Elysia from "elysia";
 import { eventTable } from "@/server/db/schema";
-import { eventModel, EventUpdatePayloadType } from "@/server/models";
+import {
+  eventModel,
+  EventUpdatePayloadType,
+  SafeServerType,
+} from "@/server/models";
 import { ContextWithUser } from "@/server/types";
 import { EventService, ServerService, ChannelService } from "@/server/services";
 import { BodyValidationError, ParamsValidationError } from "@/server/errors";
+import WebSocketManager from "../websocket-data";
+import { broadcastToServer } from "@/lib/brodcastToServer";
 
 const getEventsRoute = new Elysia({
   name: "get-events-route",
@@ -37,7 +43,9 @@ const eventIndexRoutes = new Elysia({
   .post(
     "/",
     async (context) => {
-      const contextWithUser = context as ContextWithUser;
+      const contextWithUserAndServer = context as ContextWithUser & {
+        server: SafeServerType;
+      };
 
       const event = await EventService.insertOneEvent({
         event_title: context.body.event_title,
@@ -45,8 +53,27 @@ const eventIndexRoutes = new Elysia({
         event_start_date: context.body.event_start_date,
         event_finish_date: context.body.event_finish_date,
         channel_id: context.params.channel_id,
-        owner_id: contextWithUser.user.user_id,
+        owner_id: contextWithUserAndServer.user.user_id,
       });
+
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        contextWithUserAndServer.server.server_id,
+        contextWithUserAndServer.user.user_name,
+        {
+          success: true,
+          message: "Channel event created successfully.",
+          data: {
+            type: "post_server_channel_event",
+            server_id: contextWithUserAndServer.server.server_id,
+            channel_id: context.params.channel_id,
+            event,
+          },
+        }
+      );
+
       return {
         success: true,
         message: "Event created successfully.",
@@ -104,8 +131,8 @@ const eventIndexRoutes = new Elysia({
   )
   .put(
     `/:${eventTable.event_id.name}`,
-    async ({ body, params: { event_id } }) => {
-      if (!Object.keys(body).length)
+    async (context) => {
+      if (!Object.keys(context.body).length)
         throw new BodyValidationError(
           [
             { path: "event_title", message: "Invalid value." },
@@ -115,12 +142,34 @@ const eventIndexRoutes = new Elysia({
         );
 
       const updatePayload = {
-        ...body,
+        ...context.body,
       } as EventUpdatePayloadType;
 
       const updatedEvent = await EventService.updateEvent(
         updatePayload,
-        event_id
+        context.params.event_id
+      );
+
+      const contextWithUserAndServer = context as ContextWithUser & {
+        server: SafeServerType;
+      };
+
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        contextWithUserAndServer.server.server_id,
+        contextWithUserAndServer.user.user_name,
+        {
+          success: true,
+          message: "Channel event updated successfully.",
+          data: {
+            type: "update_server_channel_event",
+            server_id: contextWithUserAndServer.server.server_id,
+            channel_id: context.params.channel_id,
+            event: updatedEvent,
+          },
+        }
       );
 
       return {
@@ -139,9 +188,32 @@ const eventIndexRoutes = new Elysia({
   )
   .delete(
     `/:${eventTable.event_id.name}`,
-    async ({ params: { event_id } }) => {
-      const deletedEvent = await EventService.deleteEvent(event_id);
+    async (context) => {
+      const deletedEvent = await EventService.deleteEvent(
+        context.params.event_id
+      );
 
+      const contextWithUserAndServer = context as ContextWithUser & {
+        server: SafeServerType;
+      };
+
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        contextWithUserAndServer.server.server_id,
+        contextWithUserAndServer.user.user_name,
+        {
+          success: true,
+          message: "Channel event deleted successfully.",
+          data: {
+            type: "delete_server_channel_event",
+            server_id: contextWithUserAndServer.server.server_id,
+            channel_id: context.params.channel_id,
+            event: deletedEvent,
+          },
+        }
+      );
       return {
         success: true,
         message: "Deleted event successfully.",

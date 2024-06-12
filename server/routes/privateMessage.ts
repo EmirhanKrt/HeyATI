@@ -11,7 +11,11 @@ import {
   SafeUserType,
 } from "@/server/models";
 import { ContextWithUser } from "@/server/types";
-import { FileService, PrivateMessageService } from "@/server/services";
+import {
+  FileService,
+  PrivateMessageService,
+  UserService,
+} from "@/server/services";
 import { ParamsValidationError } from "@/server/errors";
 import WebSocketManager from "../websocket-data";
 
@@ -162,6 +166,8 @@ const crudPrivateMessageRoutes = new Elysia({
 
       const websocket = wsManager.getUserConnection(targetUser.user_name);
 
+      const user = await UserService.getUserByUserID(senderUser.user_id);
+
       if (websocket) {
         websocket.socket.send(
           JSON.stringify({
@@ -169,7 +175,7 @@ const crudPrivateMessageRoutes = new Elysia({
             message: "Message sent successfully.",
             data: {
               type: "post_private_message",
-              sender_user_name: senderUser.user_name,
+              user: user,
               message: responseMessageData,
             },
           })

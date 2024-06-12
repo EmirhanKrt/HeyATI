@@ -122,7 +122,7 @@ export const interactedUsersSlice = createSlice({
     postMessage: (
       state,
       action: PayloadAction<{
-        user_name: string;
+        user: SafeUserType;
         message: PrivateMessageSuccessResponseBodyDataType;
       }>
     ) => {
@@ -130,32 +130,43 @@ export const interactedUsersSlice = createSlice({
 
       const date = convertToLocalDateString(action.payload.message.created_at);
 
-      if (newState.users[action.payload.user_name].messages) {
-        if (newState.users[action.payload.user_name].messages[date]) {
-          newState.users[action.payload.user_name].messages[date].unshift(
+      if (!newState.users[action.payload.user.user_name]) {
+        newState.users[action.payload.user.user_name] = {
+          ...action.payload.user,
+          isNotInteracted: false,
+          created_at: new Date().toLocaleString(),
+          messages: {
+            [date]: [action.payload.message],
+          },
+        };
+      }
+
+      if (newState.users[action.payload.user.user_name].messages) {
+        if (newState.users[action.payload.user.user_name].messages[date]) {
+          newState.users[action.payload.user.user_name].messages[date].unshift(
             action.payload.message
           );
         } else {
           const entries = Object.entries(
-            newState.users[action.payload.user_name].messages
+            newState.users[action.payload.user.user_name].messages
           );
 
           entries.push([date, [action.payload.message]]);
 
-          newState.users[action.payload.user_name].messages =
+          newState.users[action.payload.user.user_name].messages =
             Object.fromEntries(entries);
         }
       } else {
-        newState.users[action.payload.user_name].messages = {
+        newState.users[action.payload.user.user_name].messages = {
           [date]: [action.payload.message],
         };
       }
 
       newState.order = newState.order.filter(
-        (state) => state !== action.payload.user_name
+        (state) => state !== action.payload.user.user_name
       );
 
-      newState.order.unshift(action.payload.user_name);
+      newState.order.unshift(action.payload.user.user_name);
 
       return newState;
     },

@@ -4,8 +4,8 @@ import { eventTable } from "@/server/db/schema";
 import { generateSuccessReponseBodySchema } from "@/server/utils";
 
 const schemaRules = {
-  event_title: t.String({ maxLength: 16, minLength: 3 }),
-  event_description: t.String({ maxLength: 500, minLength: 16 }),
+  event_title: t.String({ maxLength: 100, minLength: 3 }),
+  event_description: t.String({ maxLength: 500, minLength: 2 }),
   event_start_date: t.String({ maxLength: 500, minLength: 5 }),
   event_finish_date: t.String({ maxLength: 500, minLength: 5 }),
 };

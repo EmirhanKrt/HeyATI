@@ -69,8 +69,6 @@ const ChannelPage = ({
         setUserRole("");
       }
 
-      console.log(targetServer[server_id].channels);
-
       const targetChannelIndex = targetServer[server_id].channels.findIndex(
         (channel) => channel.channel_id === +channel_id
       );

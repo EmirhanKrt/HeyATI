@@ -295,6 +295,48 @@ export abstract class ServerService {
     return serverList[0];
   }
 
+  static async updateUser(
+    server_id: number,
+    user_id: number,
+    role: "owner" | "administrator" | "moderator" | "user"
+  ) {
+    const users = await db
+      .update(serverUserTable)
+      .set({ role })
+      .where(
+        and(
+          eq(serverUserTable.server_id, server_id),
+          eq(serverUserTable.user_id, user_id)
+        )
+      )
+      .returning();
+
+    return users[0];
+  }
+
+  static async banUser(
+    server_id: number,
+    user_id: number,
+    bannedUntil: string
+  ) {
+    const users = await db
+      .update(serverUserTable)
+      .set({
+        user_banned_until_date: bannedUntil,
+        is_user_banned: true,
+        is_user_active: false,
+      })
+      .where(
+        and(
+          eq(serverUserTable.server_id, server_id),
+          eq(serverUserTable.user_id, user_id)
+        )
+      )
+      .returning();
+
+    return users[0];
+  }
+
   static toSafeServerType(server: ServerType): SafeServerType {
     const { updated_at, ...restOfServer } = server;
 

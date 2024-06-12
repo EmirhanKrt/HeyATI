@@ -223,6 +223,52 @@ const crudChannelMessageRoutes = new Elysia({
     };
   })
   .use(channelMessageFileRoutes)
+  .delete(
+    `/:${channelMessageTable.channel_message_id.name}`,
+    async (context) => {
+      const { message, channel, user } = context as ContextWithMessage;
+
+      const fileList = await ChannelMessageService.getFilesByMessageId(
+        message.channel_message_id
+      );
+
+      const deletedMessage = await ChannelMessageService.deleteMessage(
+        message.channel_message_id
+      );
+
+      if (fileList) {
+        for (const file of fileList) {
+          await FileService.deleteFromBucket(file);
+        }
+      }
+
+      const responseMessageData = {
+        ...deletedMessage,
+        files: fileList ? fileList.map(FileService.toSafeFileType) : [],
+      };
+
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(wsManager, channel.server_id, user.user_name, {
+        success: true,
+        message: "Message deleted successfully.",
+        data: {
+          type: "delete_server_channel_message",
+          server_id: channel.server_id,
+          channel_id: channel.channel_id,
+          message: responseMessageData,
+        },
+      });
+
+      return {
+        success: true,
+        message: "Message deleted successfully.",
+        data: {
+          message: responseMessageData,
+        },
+      };
+    }
+  )
   .onBeforeHandle(async (context) => {
     const { user: senderUser, message } = context as ContextWithMessage;
 
@@ -275,52 +321,6 @@ const crudChannelMessageRoutes = new Elysia({
     },
     {
       body: "channel_message.put.message_id.request.body",
-    }
-  )
-  .delete(
-    `/:${channelMessageTable.channel_message_id.name}`,
-    async (context) => {
-      const { message, channel, user } = context as ContextWithMessage;
-
-      const fileList = await ChannelMessageService.getFilesByMessageId(
-        message.channel_message_id
-      );
-
-      const deletedMessage = await ChannelMessageService.deleteMessage(
-        message.channel_message_id
-      );
-
-      if (fileList) {
-        for (const file of fileList) {
-          await FileService.deleteFromBucket(file);
-        }
-      }
-
-      const responseMessageData = {
-        ...deletedMessage,
-        files: fileList ? fileList.map(FileService.toSafeFileType) : [],
-      };
-
-      const wsManager = await WebSocketManager;
-
-      broadcastToServer(wsManager, channel.server_id, user.user_name, {
-        success: true,
-        message: "Message deleted successfully.",
-        data: {
-          type: "delete_server_channel_message",
-          server_id: channel.server_id,
-          channel_id: channel.channel_id,
-          message: responseMessageData,
-        },
-      });
-
-      return {
-        success: true,
-        message: "Message deleted successfully.",
-        data: {
-          message: responseMessageData,
-        },
-      };
     }
   );
 

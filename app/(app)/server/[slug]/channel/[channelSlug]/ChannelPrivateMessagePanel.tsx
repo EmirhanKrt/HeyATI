@@ -355,6 +355,12 @@ const MessageDateGroup = ({
         const isCurrentUserIsMessageSender =
           message.sender_id === currentUser.user_id;
 
+        const currentUserRole = users.find(
+          (user) => user.user_id === currentUser.user_id
+        );
+
+        if (!currentUserRole) return null;
+
         const messageSenderUser = isCurrentUserIsMessageSender
           ? currentUser
           : users.find((user) => user.user_id === message.sender_id) || {
@@ -409,7 +415,30 @@ const MessageDateGroup = ({
                 />
               )}
 
-              {isCurrentUserIsMessageSender && (
+              {currentUserRole.role !== "user" ? (
+                isCurrentUserIsMessageSender ? (
+                  <div className="message-icons">
+                    <span onClick={() => handleEditClick(message)}>✏️</span>
+                    <span
+                      onClick={() =>
+                        handleDeleteMessage(message.channel_message_id)
+                      }
+                    >
+                      🗑️
+                    </span>
+                  </div>
+                ) : (
+                  <div className="message-icons">
+                    <span
+                      onClick={() =>
+                        handleDeleteMessage(message.channel_message_id)
+                      }
+                    >
+                      🗑️
+                    </span>
+                  </div>
+                )
+              ) : isCurrentUserIsMessageSender ? (
                 <div className="message-icons">
                   <span onClick={() => handleEditClick(message)}>✏️</span>
                   <span
@@ -420,7 +449,7 @@ const MessageDateGroup = ({
                     🗑️
                   </span>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {message.files.length > 0 && (

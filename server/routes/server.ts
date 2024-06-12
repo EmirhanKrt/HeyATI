@@ -1,11 +1,17 @@
-import Elysia from "elysia";
-import { serverTable } from "@/server/db/schema";
+import Elysia, { t } from "elysia";
+import { serverTable, userTable } from "@/server/db/schema";
 import { ServerUpdatePayloadType, serverModel } from "@/server/models";
 import { ContextWithUser } from "@/server/types";
-import { ServerService } from "@/server/services";
-import { BodyValidationError, ForbiddenError } from "@/server/errors";
+import { ServerService, UserService } from "@/server/services";
+import {
+  BodyValidationError,
+  ForbiddenError,
+  ParamsValidationError,
+} from "@/server/errors";
 import { userAccessPlugin } from "@/server/plugins";
 import { InviteService } from "../services/invite";
+import WebSocketManager from "../websocket-data";
+import { broadcastToServer } from "@/lib/brodcastToServer";
 
 export const serverRoutes = new Elysia({
   name: "server-routes",
@@ -42,6 +48,10 @@ export const serverRoutes = new Elysia({
     "/join",
     async (context) => {
       const contextWithUser = context as ContextWithUser;
+
+      const user = await UserService.getUserByUserID(
+        contextWithUser.user.user_id
+      );
 
       const inviteCode = await InviteService.getInvite(
         context.body.server_invite_code
@@ -93,6 +103,29 @@ export const serverRoutes = new Elysia({
 
       const server = await ServerService.getServer(inviteCode.server_id);
 
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        server.server_id,
+        contextWithUser.user.user_name,
+        {
+          success: true,
+          message: "User joined successfully.",
+          data: {
+            type: "post_server_user",
+            server_id: server.server_id,
+            user: {
+              user_id: user!.user_id,
+              user_name: user!.user_name,
+              first_name: user!.first_name,
+              last_name: user!.last_name,
+              role: joinedUser.role,
+            },
+          },
+        }
+      );
+
       return {
         success: true,
         message: "User joined server succefully.",
@@ -107,6 +140,142 @@ export const serverRoutes = new Elysia({
     }
   )
   .use(userAccessPlugin)
+  .put(
+    `/:${serverTable.server_id.name}/user/:${userTable.user_name.name}`,
+    async (context) => {
+      if (
+        context.serverUser.role === "user" ||
+        context.serverUser.role === "moderator"
+      ) {
+        throw new ForbiddenError("User cannot perform the action.");
+      }
+
+      const user = await UserService.getUserByUserName(
+        context.params.user_name
+      );
+
+      if (!user) {
+        throw new ParamsValidationError(
+          [{ path: "user_name", message: "Invalid value." }],
+          "User not found in server."
+        );
+      }
+
+      const updatedUserRow = await ServerService.updateUser(
+        context.server.server_id,
+        user.user_id,
+        context.body.role as "administrator" | "moderator" | "user"
+      );
+
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        context.server.server_id,
+        (context as unknown as ContextWithUser).user.user_name,
+        {
+          success: true,
+          message: "User updated successfully.",
+          data: {
+            type: "put_server_user",
+            server_id: context.server.server_id,
+            user: {
+              user_id: user.user_id,
+              user_name: user.user_name,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              role: updatedUserRow.role,
+            },
+          },
+        }
+      );
+
+      return {
+        success: true,
+        message: "User updated successfully.",
+        data: {
+          user: {
+            user_id: user.user_id,
+            user_name: user.user_name,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            role: updatedUserRow.role,
+          },
+        },
+      };
+    },
+    {
+      body: t.Object({ role: t.String() }),
+    }
+  )
+  .post(
+    `/:${serverTable.server_id.name}/user/:${userTable.user_name.name}`,
+    async (context) => {
+      if (
+        context.serverUser.role === "user" ||
+        context.serverUser.role === "moderator"
+      ) {
+        throw new ForbiddenError("User cannot perform the action.");
+      }
+
+      const user = await UserService.getUserByUserName(
+        context.params.user_name
+      );
+
+      if (!user) {
+        throw new ParamsValidationError(
+          [{ path: "user_name", message: "Invalid value." }],
+          "User not found in server."
+        );
+      }
+
+      const updatedUserRow = await ServerService.banUser(
+        context.server.server_id,
+        user.user_id,
+        context.body.bannedUntil
+      );
+
+      const wsManager = await WebSocketManager;
+
+      broadcastToServer(
+        wsManager,
+        context.server.server_id,
+        (context as unknown as ContextWithUser).user.user_name,
+        {
+          success: true,
+          message: "User banned successfully.",
+          data: {
+            type: "delete_server_user",
+            server_id: context.server.server_id,
+            user: {
+              user_id: user.user_id,
+              user_name: user.user_name,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              role: updatedUserRow.role,
+            },
+          },
+        }
+      );
+
+      return {
+        success: true,
+        message: "User banned successfully.",
+        data: {
+          user: {
+            user_id: user.user_id,
+            user_name: user.user_name,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            role: updatedUserRow.role,
+          },
+        },
+      };
+    },
+    {
+      body: t.Object({ bannedUntil: t.String() }),
+    }
+  )
   .guard(
     {
       params: "server.server_id.request.params",

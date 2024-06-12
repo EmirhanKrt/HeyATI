@@ -81,7 +81,7 @@ const CreateInviteButton = ({ server_id }: { server_id: number }) => {
 
       <PopUp
         type="content"
-        title="Invites"
+        title="Invite"
         openState={isOpen}
         setOpenState={setIsOpen}
       >

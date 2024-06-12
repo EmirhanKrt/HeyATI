@@ -6,10 +6,16 @@ import {
 import {
   addChannel,
   deleteChannel,
+  deleteChannelEvent,
   deleteChannelMessage,
+  deleteServerUser,
+  postChannelEvent,
   postChannelMessage,
+  postServerUser,
   updateChannel,
+  updateChannelEvent,
   updateChannelMessage,
+  updateServerUser,
 } from "../../features/server/serverSlice";
 import {
   createCall,
@@ -29,7 +35,7 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
     case "post_private_message":
       dispatch(
         postMessage({
-          user_name: data.sender_user_name,
+          user: data.user,
           message: data.message,
         })
       );
@@ -148,6 +154,62 @@ const webSocketMessageHandler = (event: MessageEvent<any>, dispatch: any) => {
       );
       break;
 
+    case "post_server_channel_event":
+      dispatch(
+        postChannelEvent({
+          server_id: data.server_id,
+          channel_id: data.channel_id,
+          event: data.event,
+        })
+      );
+      break;
+
+    case "update_server_channel_event":
+      dispatch(
+        updateChannelEvent({
+          server_id: data.server_id,
+          channel_id: data.channel_id,
+          event: data.event,
+        })
+      );
+      break;
+
+    case "delete_server_channel_event":
+      dispatch(
+        deleteChannelEvent({
+          server_id: data.server_id,
+          channel_id: data.channel_id,
+          event: data.event,
+        })
+      );
+      break;
+
+    case "post_server_user":
+      dispatch(
+        postServerUser({
+          server_id: data.server_id,
+          user: data.user,
+        })
+      );
+      break;
+
+    case "put_server_user":
+      dispatch(
+        updateServerUser({
+          server_id: data.server_id,
+          user: data.user,
+        })
+      );
+      break;
+
+    case "delete_server_user":
+      dispatch(
+        deleteServerUser({
+          server_id: data.server_id,
+          user: data.user,
+        })
+      );
+      break;
     default:
       break;
   }
